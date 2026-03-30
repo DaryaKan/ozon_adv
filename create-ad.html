@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="category-path-hint-v1" />
+    <meta name="prototype-build" content="category-viewpath-fix-v1" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "category-path-hint-v1";
+        var NEED = "category-viewpath-fix-v1";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -360,6 +360,26 @@
       .step[data-step="8"] .card .input:focus-visible {
         outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
         outline-offset: 2px;
+      }
+
+      .step[data-step="3"] .tree {
+        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
+        border: 0;
+        border-radius: var(--radiusMd, 10px);
+        overflow: hidden;
+      }
+
+      .step[data-step="3"] .treeItem {
+        background: rgba(255, 255, 255, 0.55);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+      }
+
+      .step[data-step="3"] .treeItem:last-child {
+        border-bottom: 0;
+      }
+
+      .step[data-step="3"] .treeItem.treeItem--selected {
+        background: rgba(255, 255, 255, 0.92);
       }
 
       .step[data-step="3"] .treeItem.treeItem--selected .chev {
@@ -2188,19 +2208,30 @@
           return names;
         }
 
-        function getChildrenForPath(path) {
+        /**
+         * Путь в черновике может указывать на лист; на экране показываем детей родителя.
+         * Возвращает viewPath — префикс для сборки nextPath при клике (родитель показанного списка).
+         */
+        function resolveCategoryView(path) {
           const pth = normalizeCategoryPath(path);
-          if (!pth.length) return categoryRoot;
+          if (!pth.length) {
+            return { viewPath: [], children: categoryRoot };
+          }
           let p = pth.slice();
           let node = findNodeByPath(p);
-          if (!node) return categoryRoot;
+          if (!node) {
+            return { viewPath: [], children: categoryRoot };
+          }
           while (p.length && node && (!node.children || !node.children.length)) {
             p = p.slice(0, -1);
             node = p.length ? findNodeByPath(p) : null;
           }
-          if (!p.length) return categoryRoot;
+          if (!p.length) {
+            return { viewPath: [], children: [] };
+          }
           node = findNodeByPath(p);
-          return node && node.children && node.children.length ? node.children : categoryRoot;
+          const kids = node && node.children && node.children.length ? node.children : [];
+          return { viewPath: p, children: kids };
         }
 
         function escapeHtml(str) {
@@ -2229,7 +2260,7 @@
 
         function renderCategoryTree() {
           const catPath = normalizeCategoryPath(draft.categoryPath);
-          const children = getChildrenForPath(catPath);
+          const { viewPath, children } = resolveCategoryView(draft.categoryPath);
           const items = [];
           if (catPath.length) {
             items.push(
@@ -2238,7 +2269,7 @@
           }
           for (const c of children) {
             const hasKids = c.children && c.children.length;
-            const nextPath = [...catPath, c.id];
+            const nextPath = [...viewPath, c.id];
             const isLeafSelected = !hasKids && pathsEqualCategory(nextPath, catPath);
             items.push(
               `<div class="treeItem${isLeafSelected ? " treeItem--selected" : ""}" data-tree="node" data-id="${c.id}">
@@ -2502,7 +2533,8 @@
             return;
           }
           if (item.dataset.tree === "node" && item.dataset.id) {
-            const nextPath = [...normalizeCategoryPath(draft.categoryPath), item.dataset.id];
+            const { viewPath } = resolveCategoryView(draft.categoryPath);
+            const nextPath = [...viewPath, item.dataset.id];
             saveDraft({ categoryPath: nextPath });
           }
         });
