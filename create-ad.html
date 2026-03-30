@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="title-suggest-multi-category" />
+    <meta name="prototype-build" content="navbar-back-chevron" />
     <title>Создать объявление — Ozon ADV</title>
 
     <style>
@@ -88,8 +88,52 @@
 
       .navRow {
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
         align-items: center;
+        width: 100%;
+        min-height: 32px;
+      }
+
+      .navRowSide {
+        flex: 0 0 32px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .navRowSide--start {
+        justify-content: flex-start;
+      }
+
+      .navRowSide--end {
+        justify-content: flex-end;
+      }
+
+      .backBtn {
+        appearance: none;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
+        display: inline-grid;
+        place-items: center;
+        cursor: pointer;
+        color: var(--icon-close);
+      }
+
+      .backBtn svg {
+        width: 16px;
+        height: 16px;
+        display: block;
+      }
+
+      .backBtn:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+        outline-offset: 2px;
       }
 
       .closeBtn {
@@ -630,14 +674,26 @@
     <div class="screen">
       <header class="topbar">
         <div class="navRow">
-          <button class="closeBtn" id="closeFlow" type="button" aria-label="Закрыть">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path
-                d="M11.7 2.53287C12.1881 2.04488 12.9794 2.04477 13.4675 2.53287C13.9555 3.02098 13.9555 3.81233 13.4675 4.30045L9.76831 7.99966L13.4675 11.6999C13.9554 12.188 13.9556 12.9794 13.4675 13.4674C12.9795 13.9555 12.1881 13.9553 11.7 13.4674L7.99976 9.76822L4.30054 13.4674C3.81242 13.9554 3.02107 13.9554 2.53296 13.4674C2.04486 12.9793 2.04497 12.188 2.53296 11.6999L6.23218 7.99966L2.53296 4.30045C2.0448 3.81229 2.0448 3.02102 2.53296 2.53287C3.02111 2.04471 3.81238 2.04471 4.30054 2.53287L7.99976 6.23209L11.7 2.53287Z"
-                fill="currentColor"
-              />
-            </svg>
-          </button>
+          <div class="navRowSide navRowSide--start">
+            <button class="backBtn" id="backStep" type="button" aria-label="Назад" hidden>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path
+                  d="M8.58008 3.32065C9.09313 2.8589 9.88385 2.90052 10.3457 3.41342C10.8075 3.92653 10.766 4.71721 10.2529 5.17905L7.11816 8.00034L10.2529 10.8206C10.7661 11.2825 10.8075 12.0731 10.3457 12.5863C9.88387 13.0993 9.09319 13.1408 8.58008 12.679L4.41406 8.92905C4.15075 8.69207 4.00009 8.35458 4 8.00034C4 7.64598 4.15067 7.3077 4.41406 7.07065L8.58008 3.32065Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+          </div>
+          <div class="navRowSide navRowSide--end">
+            <button class="closeBtn" id="closeFlow" type="button" aria-label="Закрыть">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path
+                  d="M11.7 2.53287C12.1881 2.04488 12.9794 2.04477 13.4675 2.53287C13.9555 3.02098 13.9555 3.81233 13.4675 4.30045L9.76831 7.99966L13.4675 11.6999C13.9554 12.188 13.9556 12.9794 13.4675 13.4674C12.9795 13.9555 12.1881 13.9553 11.7 13.4674L7.99976 9.76822L4.30054 13.4674C3.81242 13.9554 3.02107 13.9554 2.53296 13.4674C2.04486 12.9793 2.04497 12.188 2.53296 11.6999L6.23218 7.99966L2.53296 4.30045C2.0448 3.81229 2.0448 3.02102 2.53296 2.53287C3.02111 2.04471 3.81238 2.04471 4.30054 2.53287L7.99976 6.23209L11.7 2.53287Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -845,6 +901,7 @@
           progressBar: document.getElementById("progressBar"),
           nextBtn: document.getElementById("nextBtn"),
           closeFlow: document.getElementById("closeFlow"),
+          backStep: document.getElementById("backStep"),
 
           mediaInput: document.getElementById("mediaInput"),
           mediaGrid: document.getElementById("mediaGrid"),
@@ -1474,6 +1531,8 @@
 
           els.nextBtn.textContent = step === TOTAL ? "Опубликовать" : "Далее";
 
+          els.backStep.hidden = step <= 1;
+
           // Sync fields
           els.titleInput.value = draft.title || "";
           els.descInput.value = draft.description || "";
@@ -1501,6 +1560,12 @@
             return;
           }
           setStep((draft.step || 1) + 1);
+        });
+
+        els.backStep.addEventListener("click", () => {
+          const s = draft.step || 1;
+          if (s <= 1) return;
+          setStep(s - 1);
         });
 
         els.closeFlow.addEventListener("click", () => {
