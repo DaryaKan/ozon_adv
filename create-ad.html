@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="media-add-cell-blue-bg" />
+    <meta name="prototype-build" content="media-add-blue-important-inline" />
     <title>Создать объявление — Ozon ADV</title>
 
     <style>
@@ -343,14 +343,6 @@
         border: 2px dashed rgba(0, 0, 0, 0.12);
       }
 
-      /* Первая ячейка: голубой фон (специфичность выше, чем у общего > .mediaTile). */
-      .mediaGrid.mediaGridCols3 > .mediaTile.mediaTileAdd {
-        place-items: center;
-        background: color-mix(in srgb, var(--primary) 12%, #fff);
-        border: 0;
-        cursor: pointer;
-      }
-
       /* Глобальные стили button из UI-kit часто задают min-height — ломают 3:4. */
       .mediaGrid.mediaGridCols3 > button.mediaTile {
         appearance: none;
@@ -364,6 +356,14 @@
         font: inherit;
         color: inherit;
         vertical-align: top;
+      }
+
+      /* Первая ячейка: голубой фон (!important — UI-kit может задавать фон кнопке). */
+      .mediaGrid.mediaGridCols3 > .mediaTile.mediaTileAdd {
+        place-items: center;
+        background: color-mix(in srgb, var(--primary) 12%, #fff) !important;
+        border: 0 !important;
+        cursor: pointer;
       }
 
       .mediaRemove {
@@ -1130,7 +1130,7 @@
           const tiles = [];
 
           tiles.push(
-            `<button class="mediaTile mediaTileAdd" type="button" id="mediaAddBtn" aria-label="Добавить фото или видео">
+            `<button class="mediaTile mediaTileAdd" type="button" id="mediaAddBtn" aria-label="Добавить фото или видео" style="background: color-mix(in srgb, var(--primary) 12%, #fff) !important; border: 0 !important;">
               <span class="addIconWrap" aria-hidden="true">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                   <path
