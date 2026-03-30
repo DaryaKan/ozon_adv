@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="remove-btn-offset-4px" />
+    <meta name="prototype-build" content="media-3cells-dashed-only" />
     <title>Создать объявление — Ozon ADV</title>
 
     <style>
@@ -165,7 +165,8 @@
       }
 
       .content {
-        overflow: auto;
+        overflow-x: hidden;
+        overflow-y: auto;
         padding: 16px;
         padding-bottom: 24px;
       }
@@ -304,38 +305,63 @@
         font-weight: 800;
       }
 
-      .mediaGrid {
-        display: flex;
+      /* Класс не «grid3»: в Ozon UI kit могут быть свои утилиты с таким именем. */
+      .mediaGrid.mediaGridCols3 {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 12px;
-        overflow-x: auto;
-        padding: 4px 4px 6px;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 4px 0 8px;
+        align-items: start;
       }
 
-      .mediaTile {
-        flex: 0 0 auto;
-        width: 96px;
-        height: 96px;
-        border-radius: 18px;
-        background: rgba(0, 0, 0, 0.03);
+      /* Общая рамка 3:4; ширина колонок — доля экрана (1fr), высота от aspect-ratio. */
+      .mediaGrid.mediaGridCols3 > .mediaTile {
+        width: 100%;
+        min-width: 0;
+        min-height: 0;
+        aspect-ratio: 3 / 4;
+        border-radius: 12px;
+        background: transparent;
         display: grid;
-        place-items: center;
+        place-items: stretch;
         overflow: hidden;
         position: relative;
+        box-sizing: border-box;
       }
 
-      .mediaTile:has(.mediaRemove) {
-        overflow: visible;
+      .mediaGrid.mediaGridCols3 > .mediaTile:not(.mediaTileEmpty):not(.mediaTileAdd) {
+        background: rgba(0, 0, 0, 0.03);
       }
 
-      .mediaTile:has(.mediaRemove) img,
-      .mediaTile:has(.mediaRemove) video {
-        border-radius: 18px;
+      /* 2–3 ячейки: только пунктир, без заливки. */
+      .mediaGrid.mediaGridCols3 > .mediaTile.mediaTileEmpty {
+        background: transparent;
+        border: 2px dashed rgba(0, 0, 0, 0.12);
+      }
+
+      /* Глобальные стили button из UI-kit часто задают min-height — ломают 3:4. */
+      .mediaGrid.mediaGridCols3 > button.mediaTile {
+        appearance: none;
+        -webkit-appearance: none;
+        padding: 0;
+        margin: 0;
+        min-height: 0;
+        max-height: none;
+        height: auto;
+        line-height: 0;
+        font: inherit;
+        color: inherit;
+        vertical-align: top;
       }
 
       .mediaRemove {
         position: absolute;
-        top: -4px;
-        right: -4px;
+        top: 6px;
+        right: 6px;
         z-index: 3;
         width: 22px;
         height: 22px;
@@ -360,18 +386,14 @@
         outline-offset: 1px;
       }
 
-      .mediaTileEmpty {
-        background: transparent;
-        border: 2px dashed rgba(0, 0, 0, 0.12);
-      }
-
-      .mediaTileAdd {
+      .mediaTile.mediaTileAdd {
+        place-items: center;
         background: color-mix(in srgb, var(--primary) 12%, #fff);
         border: 0;
         cursor: pointer;
       }
 
-      .mediaTileAdd .addIconWrap {
+      .mediaTile.mediaTileAdd .addIconWrap {
         width: 44px;
         height: 44px;
         border-radius: 14px;
@@ -380,19 +402,21 @@
         place-items: center;
       }
 
-      .mediaTileAdd .addIconWrap svg {
+      .mediaTile.mediaTileAdd .addIconWrap svg {
         width: 16px;
         height: 16px;
         display: block;
         color: var(--icon-add-media);
       }
 
-      .mediaTile img,
-      .mediaTile video {
+      .mediaGrid.mediaGridCols3 .mediaTile img,
+      .mediaGrid.mediaGridCols3 .mediaTile video {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        object-position: center;
         display: block;
+        border-radius: inherit;
       }
 
       .mediaTile .badge {
@@ -472,6 +496,9 @@
       .step[data-active="true"] {
         display: grid;
         gap: 14px;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
       }
 
       .mapMock {
@@ -511,7 +538,7 @@
       }
 
       .productMedia {
-        aspect-ratio: 4 / 3;
+        aspect-ratio: 3 / 4;
         background: rgba(0, 0, 0, 0.05);
         display: grid;
         place-items: center;
@@ -584,7 +611,7 @@
 
             <input id="mediaInput" type="file" accept="image/*,video/*" multiple hidden />
 
-            <div class="mediaGrid" id="mediaGrid"></div>
+            <div class="mediaGrid mediaGridCols3" id="mediaGrid"></div>
           </div>
         </section>
 
@@ -1116,27 +1143,28 @@
 
           const removeSvg = `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M11.7 2.53287C12.1881 2.04488 12.9794 2.04477 13.4675 2.53287C13.9555 3.02098 13.9555 3.81233 13.4675 4.30045L9.76831 7.99966L13.4675 11.6999C13.9554 12.188 13.9556 12.9794 13.4675 13.4674C12.9795 13.9555 12.1881 13.9553 11.7 13.4674L7.99976 9.76822L4.30054 13.4674C3.81242 13.9554 3.02107 13.9554 2.53296 13.4674C2.04486 12.9793 2.04497 12.188 2.53296 11.6999L6.23218 7.99966L2.53296 4.30045C2.0448 3.81229 2.0448 3.02102 2.53296 2.53287C3.02111 2.04471 3.81238 2.04471 4.30054 2.53287L7.99976 6.23209L11.7 2.53287Z" fill="currentColor"/></svg>`;
 
-          for (let i = 0; i < list.length; i++) {
-            const m = list[i];
+          function mediaTileHtml(i, m) {
             const url = m.url;
             const isVideo = (m.type || "").startsWith("video/");
             const delLabel = isVideo ? "Удалить видео" : "Удалить фото";
             const removeBtn = `<button type="button" class="mediaRemove" data-media-index="${i}" aria-label="${delLabel}">${removeSvg}</button>`;
             const badge = i === 0 ? `<div class="badge" role="status">Обложка</div>` : "";
             if (isVideo) {
-              tiles.push(
-                `<div class="mediaTile">${removeBtn}${badge}<video src="${url}" muted playsinline></video></div>`
-              );
+              return `<div class="mediaTile">${removeBtn}${badge}<video src="${url}" muted playsinline></video></div>`;
+            }
+            return `<div class="mediaTile">${removeBtn}${badge}<img src="${url}" alt="" loading="lazy" decoding="async" /></div>`;
+          }
+
+          for (let col = 0; col < 2; col++) {
+            if (col < list.length) {
+              tiles.push(mediaTileHtml(col, list[col]));
             } else {
-              tiles.push(
-                `<div class="mediaTile">${removeBtn}${badge}<img src="${url}" alt="" loading="lazy" decoding="async" /></div>`
-              );
+              tiles.push(`<div class="mediaTile mediaTileEmpty" aria-hidden="true"></div>`);
             }
           }
 
-          const placeholders = Math.max(0, 5 - list.length);
-          for (let i = 0; i < placeholders; i++) {
-            tiles.push(`<div class="mediaTile mediaTileEmpty" aria-hidden="true"></div>`);
+          for (let i = 2; i < list.length; i++) {
+            tiles.push(mediaTileHtml(i, list[i]));
           }
 
           els.mediaGrid.innerHTML = tiles.join("");
