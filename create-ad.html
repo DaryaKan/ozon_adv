@@ -36,6 +36,8 @@
         /* Цвета иконок — перед сменой всегда уточняй у дизайнера (см. правило в .cursor/rules). */
         --icon-close: #001a34;
         --icon-add-media: #ffffff;
+        --proj-h4-size: 14px;
+        --badge-radius: 6px;
       }
 
       html,
@@ -353,12 +355,17 @@
         position: absolute;
         top: 8px;
         left: 8px;
+        box-sizing: border-box;
         background: rgba(0, 0, 0, 0.6);
         color: #fff;
-        border-radius: 999px;
+        border-radius: var(--badge-radius, 6px);
         padding: 4px 8px;
-        font-size: 11px;
-        font-weight: 700;
+        font-family: var(--font);
+        font-size: var(--proj-h4-size, 14px);
+        font-weight: 600;
+        line-height: 1.3;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
       }
 
       .footer {
@@ -1059,7 +1066,7 @@
           for (let i = 0; i < list.length; i++) {
             const m = list[i];
             const url = m.url;
-            const badge = i === 0 ? `<div class="badge">Обложка</div>` : "";
+            const badge = i === 0 ? `<div class="badge" role="status">Обложка</div>` : "";
             if (m.type.startsWith("video/")) {
               tiles.push(
                 `<div class="mediaTile">${badge}<video src="${url}" muted playsinline></video></div>`
@@ -1180,16 +1187,27 @@
           window.location.href = "./index.html";
         });
 
-        // Step 1 media
+        // Step 1 media — добавляем к уже выбранным, не перезаписываем (макс. 9 файлов)
         els.mediaInput.addEventListener("change", () => {
-          cleanupMediaUrls();
+          const existing = draft.media || [];
           const files = Array.from(els.mediaInput.files || []);
-          const mapped = files.slice(0, 9).map((f) => {
+          const newItems = files.map((f) => {
             const url = URL.createObjectURL(f);
             mediaObjectUrls.push(url);
             return { name: f.name, type: f.type || "image/*", url };
           });
-          saveDraft({ media: mapped });
+          let combined = [...existing, ...newItems];
+          if (combined.length > 9) {
+            const dropped = combined.slice(9);
+            combined = combined.slice(0, 9);
+            dropped.forEach((m) => {
+              URL.revokeObjectURL(m.url);
+              const idx = mediaObjectUrls.indexOf(m.url);
+              if (idx !== -1) mediaObjectUrls.splice(idx, 1);
+            });
+          }
+          saveDraft({ media: combined });
+          els.mediaInput.value = "";
         });
 
         els.mediaGrid.addEventListener("click", (e) => {
