@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="cache-20260330-2" />
+    <meta name="prototype-build" content="no-category-guess-v1" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "cache-20260330-2";
+        var NEED = "no-category-guess-v1";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -365,20 +365,13 @@
         outline-offset: 2px;
       }
 
-      .step[data-step="3"] .suggest {
-        border: 0;
-        background: transparent;
-        border-radius: var(--radiusMd);
-        overflow: hidden;
-      }
-
-      .step[data-step="3"] .suggest button {
-        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
-        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-      }
-
-      .step[data-step="3"] .suggest button:last-child {
-        border-bottom: 0;
+      .categoryTreeBlock {
+        margin-top: 12px;
+        display: grid;
+        gap: 8px;
+        border-radius: var(--radiusMd, 10px);
+        padding: 12px;
+        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.04));
       }
 
       .step[data-step="3"] .tree {
@@ -838,15 +831,15 @@
         <section class="step" data-step="3">
           <div class="card">
             <div class="field">
-              <div class="label">Поиск категории</div>
-              <input class="input" id="categorySearch" placeholder="" autocomplete="off" />
+              <input
+                class="input"
+                id="categorySearch"
+                placeholder="Фильтр по названию раздела"
+                autocomplete="off"
+              />
             </div>
 
-            <div class="field">
-              <div class="suggest" id="categorySuggest"></div>
-            </div>
-
-            <div class="field">
+            <div class="categoryTreeBlock">
               <div class="tree" id="categoryTree"></div>
               <div class="hint" id="categoryPathHint"></div>
             </div>
@@ -1008,7 +1001,6 @@
           titleSuggest: document.getElementById("titleSuggest"),
 
           categorySearch: document.getElementById("categorySearch"),
-          categorySuggest: document.getElementById("categorySuggest"),
           categoryTree: document.getElementById("categoryTree"),
           categoryPathHint: document.getElementById("categoryPathHint"),
 
@@ -1066,6 +1058,18 @@
           contact: "",
         });
 
+        function normalizeCategoryPath(raw) {
+          if (raw == null) return [];
+          if (Array.isArray(raw)) return raw.filter((id) => typeof id === "string" && id.length);
+          if (typeof raw === "string") {
+            return raw
+              .split(/[,\s]+/)
+              .map((s) => s.trim())
+              .filter(Boolean);
+          }
+          return [];
+        }
+
         let draft;
         let mediaObjectUrls = [];
 
@@ -1075,7 +1079,9 @@
             if (!raw) return defaultDraft();
             const parsed = JSON.parse(raw);
             delete parsed.media;
-            return { ...defaultDraft(), ...parsed, media: [] };
+            const merged = { ...defaultDraft(), ...parsed, media: [] };
+            merged.categoryPath = normalizeCategoryPath(merged.categoryPath);
+            return merged;
           } catch {
             return defaultDraft();
           }
@@ -1117,6 +1123,7 @@
 
         function saveDraft(patch) {
           draft = { ...draft, ...patch };
+          draft.categoryPath = normalizeCategoryPath(draft.categoryPath);
           persistDraftToStorage();
           render();
         }
@@ -1380,52 +1387,774 @@
           return results.slice(0, 6);
         }
 
+        /** «Электроника», «Одежда», «Обувь», «Красота и здоровье», «Дом и сад» — 3 уровня (витрина/скрины Ozon); остальные — пока 1-й уровень. */
         const categoryRoot = [
           {
             id: "electronics",
             name: "Электроника",
             children: [
               {
-                id: "phones",
-                name: "Телефоны и аксессуары",
+                id: "el_ph_sw",
+                name: "Телефоны и смарт-часы",
                 children: [
-                  { id: "cases", name: "Чехлы", children: [] },
-                  { id: "glass", name: "Стекла и пленки", children: [] },
-                  { id: "chargers", name: "Зарядки и кабели", children: [] },
+                { id: "el_smartphones", name: "Смартфоны", children: [] },
+                { id: "el_phone_acc", name: "Аксессуары для смартфонов и телефонов", children: [] },
+                { id: "el_smartwatch", name: "Смарт-часы", children: [] },
+                { id: "el_fitness_band", name: "Фитнес-браслеты", children: [] },
+                { id: "el_watch_straps", name: "Ремешки для смарт-часов и фитнес-браслетов", children: [] },
+                { id: "el_watch_fitness_acc", name: "Аксессуары для смарт-часов и фитнес-браслетов", children: [] },
+                { id: "el_mobile_phones", name: "Мобильные телефоны", children: [] },
+                { id: "el_sim", name: "SIM-карты", children: [] },
+                { id: "el_ph_parts", name: "Запчасти", children: [] },
+                { id: "el_cord_phones", name: "Проводные и радиотелефоны", children: [] },
+                ],
+              },
+            {
+              id: "el_pc_periph",
+              name: "Компьютеры и периферия",
+              children: [
+                { id: "el_monitors", name: "Мониторы", children: [] },
+                { id: "el_desktop_tower", name: "Системные блоки", children: [] },
+                { id: "el_aio", name: "Моноблоки", children: [] },
+                { id: "el_periphery", name: "Периферия", children: [] },
+                { id: "el_network_hw", name: "Сетевое оборудование", children: [] },
+                { id: "el_nettop_mini", name: "Неттопы и Мини ПК", children: [] },
+                { id: "el_miners_crypto", name: "Майнеры и криптокошельки", children: [] },
+                { id: "el_micro_pc", name: "Микрокомпьютеры и комплектующие", children: [] },
+                { id: "el_industrial_pc", name: "Промышленные компьютеры и серверы", children: [] },
+                { id: "el_monitor_parts", name: "Запчасти для мониторов", children: [] },
+                { id: "el_software", name: "Программное обеспечение", children: [] },
+              ],
+            },
+            {
+              id: "el_nav",
+              name: "Навигаторы",
+              children: [
+                { id: "el_gps_track", name: "GPS-трекеры и GPS-маяки", children: [] },
+                { id: "el_tourist_nav", name: "Туристические навигаторы", children: [] },
+                { id: "el_car_nav", name: "Автомобильные навигаторы", children: [] },
+                { id: "el_nav_acc", name: "Аксессуары и запчасти", children: [] },
+              ],
+            },
+            {
+              id: "el_smart_home",
+              name: "Умный дом",
+              children: [
+                { id: "el_sh_acc", name: "Аксессуары", children: [] },
+                { id: "el_sh_switches", name: "Выключатели и реле", children: [] },
+                { id: "el_sh_sensors", name: "Датчики и регуляторы", children: [] },
+                { id: "el_sh_kits", name: "Комплекты умного дома", children: [] },
+                { id: "el_sh_light", name: "Освещение", children: [] },
+                { id: "el_sh_sockets", name: "Розетки", children: [] },
+                { id: "el_sh_security_dev", name: "Устройства безопасности", children: [] },
+                { id: "el_sh_control", name: "Управление умным домом", children: [] },
+                { id: "el_sh_curtain", name: "Электрокарнизы", children: [] },
+              ],
+            },
+            {
+              id: "el_laptop_tab",
+              name: "Ноутбуки, планшеты и электронные книги",
+              children: [
+                { id: "el_nb", name: "Ноутбуки", children: [] },
+                { id: "el_nb_gaming", name: "Игровые ноутбуки", children: [] },
+                { id: "el_tablet", name: "Планшеты", children: [] },
+                { id: "el_ebook", name: "Электронные книги", children: [] },
+                { id: "el_graphic_tab", name: "Графические планшеты", children: [] },
+                { id: "el_tab_cases", name: "Чехлы и подставки для планшетов", children: [] },
+                { id: "el_stylus", name: "Стилусы", children: [] },
+                { id: "el_nb_acc", name: "Аксессуары для ноутбуков", children: [] },
+                { id: "el_nb_parts", name: "Запчасти", children: [] },
+                { id: "el_nb_batt", name: "Аккумуляторы для ноутбуков", children: [] },
+                { id: "el_nb_chargers", name: "Зарядные устройства", children: [] },
+                { id: "el_ebook_cases", name: "Чехлы для электронных книг", children: [] },
+                { id: "el_translators", name: "Переводчики и словари", children: [] },
+              ],
+            },
+            {
+              id: "el_photo_vid",
+              name: "Фото и видеокамеры",
+              children: [
+                { id: "el_action_cam", name: "Экшн-камеры", children: [] },
+                { id: "el_action_cam_acc", name: "Аксессуары для экшн-камер", children: [] },
+                { id: "el_video_cam", name: "Видеокамеры", children: [] },
+                { id: "el_dslr", name: "Зеркальные фотоаппараты", children: [] },
+                { id: "el_mirrorless", name: "Беззеркальные фотоаппараты", children: [] },
+                { id: "el_lenses", name: "Объективы", children: [] },
+                { id: "el_compact_cam", name: "Компактные фотоаппараты", children: [] },
+                { id: "el_instant_cam", name: "Фотоаппараты мгновенной печати", children: [] },
+                { id: "el_kids_cam", name: "Детские фотоаппараты", children: [] },
+                { id: "el_photo_video_acc", name: "Аксессуары для фото и видеотехники", children: [] },
+                { id: "el_photo_backdrops", name: "Фотофоны", children: [] },
+                { id: "el_studio_equip", name: "Студийное оборудование", children: [] },
+                { id: "el_film_cart", name: "Картриджи и фотопленка", children: [] },
+                { id: "el_photo_printer", name: "Компактные фотопринтеры", children: [] },
+                { id: "el_digital_frames", name: "Цифровые фоторамки", children: [] },
+                { id: "el_other_photo_acc", name: "Прочие аксессуары", children: [] },
+              ],
+            },
+            {
+              id: "el_tv_vid",
+              name: "Телевизоры и видеотехника",
+              children: [
+                { id: "el_tv", name: "Телевизоры", children: [] },
+                { id: "el_tv_box", name: "ТВ-приставки и медиаплееры", children: [] },
+                { id: "el_tv_mounts", name: "Кронштейны и крепления", children: [] },
+                { id: "el_sat_tv", name: "Цифровое и спутниковое ТВ", children: [] },
+                { id: "el_online_cinema", name: "Онлайн-кинотеатры", children: [] },
+                { id: "el_remote", name: "Пульты ДУ", children: [] },
+                { id: "el_antenna", name: "Антенны", children: [] },
+                { id: "el_tv_parts_acc", name: "Запчасти и аксессуары", children: [] },
+                { id: "el_dvd", name: "DVD-плееры", children: [] },
+                { id: "el_projector", name: "Проекторы", children: [] },
+                { id: "el_proj_screen", name: "Проекционные экраны", children: [] },
+                { id: "el_interactive_panel", name: "Интерактивные панели и пиксельные экраны", children: [] },
+              ],
+            },
+            {
+              id: "el_optical",
+              name: "Оптические приборы",
+              children: [
+                { id: "el_telescope", name: "Телескопы", children: [] },
+                { id: "el_microscope", name: "Микроскопы", children: [] },
+                { id: "el_eyepiece", name: "Окуляры", children: [] },
+                { id: "el_tel_acc", name: "Аксессуары для телескопов", children: [] },
+                { id: "el_micro_acc", name: "Аксессуары для микроскопов", children: [] },
+              ],
+            },
+            {
+              id: "el_audio",
+              name: "Наушники и аудиотехника",
+              children: [
+                { id: "el_headphones", name: "Наушники", children: [] },
+                { id: "el_spk_wireless", name: "Беспроводные колонки", children: [] },
+                { id: "el_spk_smart", name: "Умные колонки", children: [] },
+                { id: "el_acoustic_sys", name: "Акустические системы", children: [] },
+                { id: "el_studio_stage", name: "Студийное и сценическое оборудование", children: [] },
+                { id: "el_mic", name: "Микрофоны", children: [] },
+                { id: "el_walkie", name: "Рации и радиостанции", children: [] },
+                { id: "el_radio_recv", name: "Радиоприемники", children: [] },
+                { id: "el_vinyl", name: "Виниловые проигрыватели и аксессуары", children: [] },
+                { id: "el_hp_acc", name: "Аксессуары для наушников", children: [] },
+                { id: "el_audio_acc", name: "Аксессуары для аудиотехники", children: [] },
+                { id: "el_amp_dac", name: "Усилители, ресиверы и ЦАПы", children: [] },
+                { id: "el_mp3", name: "MP3-плееры", children: [] },
+                { id: "el_voice_rec", name: "Диктофоны", children: [] },
+              ],
+            },
+            {
+              id: "el_gaming",
+              name: "Игровые приставки и ноутбуки",
+              children: [
+                { id: "el_game_console", name: "Игровые приставки", children: [] },
+                { id: "el_gaming_nb_menu", name: "Игровые ноутбуки", children: [] },
+              ],
+            },
+            {
+              id: "el_office",
+              name: "Офисная техника",
+              children: [
+                { id: "el_off_nb", name: "Ноутбуки", children: [] },
+                { id: "el_off_desktop", name: "Системные блоки", children: [] },
+                { id: "el_off_monitor", name: "Мониторы", children: [] },
+                { id: "el_mfp", name: "МФУ", children: [] },
+                { id: "el_printer", name: "Принтеры", children: [] },
+                { id: "el_cart_consum", name: "Картриджи и расходные материалы", children: [] },
+                { id: "el_retail_eq", name: "Оборудование для торговли", children: [] },
+                { id: "el_3d_eq", name: "3D-оборудование", children: [] },
+                { id: "el_off_parts", name: "Запчасти и аксессуары", children: [] },
+                { id: "el_scanner", name: "Сканеры", children: [] },
+                { id: "el_copier", name: "Копировальные аппараты", children: [] },
+                { id: "el_laminator", name: "Ламинаторы", children: [] },
+                { id: "el_shredder", name: "Шредеры", children: [] },
+                { id: "el_binder", name: "Брошюровщики", children: [] },
+                { id: "el_proj_office", name: "Проекторы", children: [] },
+              ],
+            },
+            {
+              id: "el_security",
+              name: "Охранные системы и видеонаблюдение",
+              children: [
+                { id: "el_cctv_cam", name: "Камеры видеонаблюдения", children: [] },
+                { id: "el_cctv_sys", name: "Системы видеонаблюдения", children: [] },
+                { id: "el_gate_auto", name: "Автоматика для ворот и дверей", children: [] },
+                { id: "el_intercom", name: "Домофоны", children: [] },
+                { id: "el_home_sec", name: "Охранное оборудование для дома и дачи", children: [] },
+                { id: "el_biz_sec", name: "Охранные системы для бизнеса", children: [] },
+                { id: "el_personal_dvr", name: "Персональные видеорегистраторы", children: [] },
+                { id: "el_recorders", name: "Регистраторы", children: [] },
+                { id: "el_dummy_cam", name: "Муляжи камер видеонаблюдения", children: [] },
+                { id: "el_e_lock", name: "Электронные замки", children: [] },
+                { id: "el_e_keys", name: "Электронные ключи и карты", children: [] },
+                { id: "el_bug_detector", name: "Детекторы следящих устройств и антижучки", children: [] },
+                { id: "el_cctv_install", name: "Установка видеонаблюдения", children: [] },
+                { id: "el_personal_alarm", name: "Персональные сигнализации", children: [] },
+              ],
+            },
+            {
+              id: "el_pc_parts",
+              name: "Комплектующие для ПК",
+              children: [
+                { id: "el_gpu", name: "Видеокарты и графические ускорители", children: [] },
+                { id: "el_storage", name: "Жесткие диски, SSD и сетевые накопители", children: [] },
+                { id: "el_cpu", name: "Процессоры", children: [] },
+                { id: "el_motherboard", name: "Материнские платы", children: [] },
+                { id: "el_ram", name: "Оперативная память", children: [] },
+                { id: "el_cooling", name: "Системы охлаждения", children: [] },
+                { id: "el_psu", name: "Блоки питания", children: [] },
+                { id: "el_case_pc", name: "Корпуса", children: [] },
+                { id: "el_sound_card", name: "Звуковые карты", children: [] },
+              ],
+            },
+            {
+              id: "el_modules",
+              name: "Электронные модули",
+              children: [
+                { id: "el_iface_ctrl", name: "Контроллеры интерфейсов", children: [] },
+                { id: "el_mcu", name: "Микроконтроллеры", children: [] },
+                { id: "el_comp_tester", name: "Тестеры для комплектующих", children: [] },
+              ],
+            },
+            {
+              id: "el_drones",
+              name: "Квадрокоптеры и аксессуары",
+              children: [
+                { id: "el_quad", name: "Квадрокоптеры", children: [] },
+                { id: "el_drone_parts", name: "Запчасти и аксессуары", children: [] },
+                { id: "el_drone_batt", name: "Аккумуляторы", children: [] },
+                { id: "el_drone_case", name: "Чехлы", children: [] },
+              ],
+            },
+            {
+              id: "el_acc_elec",
+              name: "Аксессуары для электроники",
+              children: [
+                { id: "el_cables_adapters", name: "Кабели и переходники", children: [] },
+                { id: "el_powerbank", name: "Внешние аккумуляторы", children: [] },
+                { id: "el_batteries", name: "Батарейки", children: [] },
+                { id: "el_recharge_batt", name: "Аккумуляторные батарейки", children: [] },
+                { id: "el_batt_chargers", name: "Зарядные устройства для батареек", children: [] },
+                { id: "el_wall_chargers", name: "Сетевые зарядные устройства", children: [] },
+                { id: "el_wireless_chargers", name: "Беспроводные зарядные устройства", children: [] },
+                { id: "el_car_chargers", name: "Автомобильные зарядные устройства", children: [] },
+                { id: "el_robotics", name: "Робототехника", children: [] },
+                { id: "el_cleaning_elec", name: "Чистящие средства и салфетки", children: [] },
+                { id: "el_psu_network", name: "Сетевые блоки питания", children: [] },
+              ],
+            },
+          ],
+          },
+          {
+            id: "clothing",
+            name: "Одежда",
+            children: [
+              {
+                id: "cl_women",
+                name: "Женская одежда",
+                children: [
+                  { id: "cl_women_blouses", name: "Блузы и рубашки", children: [] },
+                  { id: "cl_women_pants", name: "Брюки, бриджи и капри", children: [] },
+                  { id: "cl_women_outerwear", name: "Верхняя одежда", children: [] },
+                  { id: "cl_women_jumpers", name: "Джемперы, свитеры и кардиганы", children: [] },
+                  { id: "cl_women_jeans", name: "Джинсы и джеггинсы", children: [] },
+                  { id: "cl_women_homewear", name: "Домашняя одежда", children: [] },
+                  { id: "cl_women_overalls", name: "Комбинезоны", children: [] },
+                  { id: "cl_women_suits", name: "Костюмы и комплекты", children: [] },
+                  { id: "cl_women_swim", name: "Купальники и пляжная одежда", children: [] },
+                  { id: "cl_women_longsleeve", name: "Лонгсливы", children: [] },
+                  { id: "cl_women_underwear", name: "Нижнее белье", children: [] },
+                  { id: "cl_women_socks", name: "Носки, колготки и чулки", children: [] },
+                  { id: "cl_women_jackets", name: "Пиджаки, жакеты и жилеты", children: [] },
+                  { id: "cl_women_dresses", name: "Платья и сарафаны", children: [] },
+                  { id: "cl_women_thermal", name: "Термобелье", children: [] },
+                  { id: "cl_women_hoodies", name: "Толстовки, свитшоты и худи", children: [] },
+                  { id: "cl_women_tunics", name: "Туники", children: [] },
+                  { id: "cl_women_tops", name: "Футболки и топы", children: [] },
+                  { id: "cl_women_shorts", name: "Шорты", children: [] },
+                  { id: "cl_women_skirts", name: "Юбки", children: [] },
+                  { id: "cl_women_plus", name: "Одежда больших размеров", children: [] },
+                  { id: "cl_women_maternity", name: "Одежда для беременных", children: [] },
+                  { id: "cl_women_wedding", name: "Свадебные платья", children: [] },
                 ],
               },
               {
-                id: "audio",
-                name: "Аудио",
+                id: "cl_men",
+                name: "Мужская одежда",
                 children: [
-                  { id: "headphones", name: "Наушники", children: [] },
-                  { id: "speakers", name: "Колонки", children: [] },
+                  { id: "cl_men_pants", name: "Брюки", children: [] },
+                  { id: "cl_men_outerwear", name: "Верхняя одежда", children: [] },
+                  { id: "cl_men_jumpers", name: "Джемперы, свитеры и кардиганы", children: [] },
+                  { id: "cl_men_jeans", name: "Джинсы", children: [] },
+                  { id: "cl_men_homewear", name: "Домашняя одежда", children: [] },
+                  { id: "cl_men_overalls", name: "Комбинезоны", children: [] },
+                  { id: "cl_men_suits", name: "Костюмы и комплекты", children: [] },
+                  { id: "cl_men_longsleeve", name: "Лонгсливы", children: [] },
+                  { id: "cl_men_underwear", name: "Нижнее белье", children: [] },
+                  { id: "cl_men_socks", name: "Носки и гетры", children: [] },
+                  { id: "cl_men_jackets", name: "Пиджаки, жилеты и жакеты", children: [] },
+                  { id: "cl_men_beach", name: "Пляжная одежда", children: [] },
+                  { id: "cl_men_shirts", name: "Рубашки", children: [] },
+                  { id: "cl_men_thermal", name: "Термобелье", children: [] },
+                  { id: "cl_men_hoodies", name: "Толстовки, свитшоты и худи", children: [] },
+                  { id: "cl_men_tops", name: "Футболки и майки", children: [] },
+                  { id: "cl_men_shorts", name: "Шорты", children: [] },
+                  { id: "cl_men_plus", name: "Одежда больших размеров", children: [] },
+                ],
+              },
+              {
+                id: "cl_kids",
+                name: "Детская одежда",
+                children: [
+                  { id: "cl_kids_girls", name: "Одежда для девочек", children: [] },
+                  { id: "cl_kids_boys", name: "Одежда для мальчиков", children: [] },
+                  { id: "cl_kids_newborn", name: "Одежда для новорожденных", children: [] },
+                  { id: "cl_kids_school", name: "Школа", children: [] },
+                ],
+              },
+              {
+                id: "cl_uniform",
+                name: "Униформа и рабочая одежда",
+                children: [
+                  { id: "cl_uniform_academic", name: "Академическая одежда", children: [] },
+                  { id: "cl_uniform_medical", name: "Медицинская одежда", children: [] },
+                  { id: "cl_uniform_horeca", name: "Поварам и официантам", children: [] },
+                  { id: "cl_uniform_workwear", name: "Рабочая спецодежда", children: [] },
+                  { id: "cl_uniform_hivis", name: "Сигнальная одежда", children: [] },
+                  { id: "cl_uniform_formal", name: "Форменная одежда", children: [] },
+                  { id: "cl_uniform_church", name: "Церковное облачение", children: [] },
+                ],
+              },
+              {
+                id: "cl_care",
+                name: "Уход за одеждой",
+                children: [
+                  { id: "cl_care_straps", name: "Бретели, резинки и штрипки", children: [] },
+                  { id: "cl_care_dyes", name: "Красители", children: [] },
+                  { id: "cl_care_lint", name: "Машинки для удаления катышков", children: [] },
+                  { id: "cl_care_rollers", name: "Ролики и щётки", children: [] },
+                  { id: "cl_care_products", name: "Средства для ухода за одеждой", children: [] },
                 ],
               },
             ],
           },
           {
-            id: "fashion",
-            name: "Одежда и обувь",
+            id: "footwear",
+            name: "Обувь",
             children: [
-              { id: "women", name: "Женщинам", children: [] },
-              { id: "men", name: "Мужчинам", children: [] },
+              {
+                id: "fw_women",
+                name: "Женская обувь",
+                children: [
+                  { id: "fw_women_aquashoes", name: "Аквашузы", children: [] },
+                  { id: "fw_women_sandals", name: "Босоножки и сандалии", children: [] },
+                  { id: "fw_women_boots", name: "Ботинки и полуботинки", children: [] },
+                  { id: "fw_women_home", name: "Домашняя обувь", children: [] },
+                  { id: "fw_women_sneakers", name: "Кроссовки и кеды", children: [] },
+                  { id: "fw_women_moccasins", name: "Мокасины и топсайдеры", children: [] },
+                  { id: "fw_women_rubber", name: "Резиновая обувь", children: [] },
+                  { id: "fw_women_sabo", name: "Сабо и мюли", children: [] },
+                  { id: "fw_women_high_boots", name: "Сапоги и полусапоги", children: [] },
+                  { id: "fw_women_heels", name: "Туфли и балетки", children: [] },
+                  { id: "fw_women_ugg", name: "Угги, валенки и дутики", children: [] },
+                  { id: "fw_women_flipflops", name: "Шлепанцы и сланцы", children: [] },
+                  { id: "fw_women_espadrilles", name: "Эспадрильи", children: [] },
+                  { id: "fw_women_medical", name: "Медицинская обувь", children: [] },
+                  { id: "fw_women_work", name: "Рабочая обувь", children: [] },
+                ],
+              },
+              {
+                id: "fw_men",
+                name: "Мужская обувь",
+                children: [
+                  { id: "fw_men_aquashoes", name: "Аквашузы", children: [] },
+                  { id: "fw_men_boots", name: "Ботинки и полуботинки", children: [] },
+                  { id: "fw_men_home", name: "Домашняя обувь", children: [] },
+                  { id: "fw_men_sneakers", name: "Кеды, кроссовки и слипоны", children: [] },
+                  { id: "fw_men_moccasins", name: "Мокасины и топсайдеры", children: [] },
+                  { id: "fw_men_rubber", name: "Резиновая обувь", children: [] },
+                  { id: "fw_men_sandals", name: "Сандалии", children: [] },
+                  { id: "fw_men_high_boots", name: "Сапоги и полусапоги", children: [] },
+                  { id: "fw_men_oxfords", name: "Туфли", children: [] },
+                  { id: "fw_men_ugg", name: "Угги, валенки и дутики", children: [] },
+                  { id: "fw_men_flipflops", name: "Шлепанцы и сланцы", children: [] },
+                  { id: "fw_men_espadrilles", name: "Эспадрильи", children: [] },
+                  { id: "fw_men_medical", name: "Медицинская обувь", children: [] },
+                  { id: "fw_men_work", name: "Рабочая обувь", children: [] },
+                ],
+              },
+              {
+                id: "fw_kids",
+                name: "Детская обувь",
+                children: [
+                  { id: "fw_kids_girls", name: "Обувь для девочек", children: [] },
+                  { id: "fw_kids_boys", name: "Обувь для мальчиков", children: [] },
+                  { id: "fw_kids_school", name: "Школа", children: [] },
+                ],
+              },
+              {
+                id: "fw_care",
+                name: "Уход и аксессуары",
+                children: [
+                  { id: "fw_care_sponges", name: "Губки и щетки", children: [] },
+                  { id: "fw_care_foot_measure", name: "Измерители стопы", children: [] },
+                  { id: "fw_care_lasts", name: "Колодки", children: [] },
+                  { id: "fw_care_cosmetics", name: "Косметика и чистящие средства", children: [] },
+                  { id: "fw_care_crampons", name: "Ледоступы и противоскользящие наклейки", children: [] },
+                  { id: "fw_care_horns", name: "Ложки и рожки", children: [] },
+                  { id: "fw_care_stretchers", name: "Растяжители", children: [] },
+                  { id: "fw_care_insoles", name: "Стельки", children: [] },
+                  { id: "fw_care_dryers", name: "Сушилки для обуви", children: [] },
+                  { id: "fw_care_decor", name: "Украшения", children: [] },
+                  { id: "fw_care_covers", name: "Чехлы и защита для обуви", children: [] },
+                  { id: "fw_care_laces", name: "Шнурки", children: [] },
+                ],
+              },
             ],
           },
           {
-            id: "home",
-            name: "Дом",
+            id: "home_garden",
+            name: "Дом и сад",
             children: [
-              { id: "kitchen", name: "Кухня", children: [] },
-              { id: "decor", name: "Декор", children: [] },
+              {
+                id: "hg_kitchen",
+                name: "Кухня и столовая",
+                children: [
+                  { id: "hg_kitchenware", name: "Посуда", children: [] },
+                  { id: "hg_cutlery", name: "Столовые приборы", children: [] },
+                  { id: "hg_bakeware", name: "Для выпечки", children: [] },
+                  { id: "hg_kitchen_gadgets", name: "Кухонные принадлежности", children: [] },
+                  { id: "hg_food_storage", name: "Хранение продуктов", children: [] },
+                  { id: "hg_kitchen_textile", name: "Текстиль для кухни", children: [] },
+                ],
+              },
+              {
+                id: "hg_textile",
+                name: "Текстиль для дома",
+                children: [
+                  { id: "hg_bedding", name: "Постельное бельё", children: [] },
+                  { id: "hg_pillows_blankets", name: "Подушки и одеяла", children: [] },
+                  { id: "hg_towels", name: "Полотенца", children: [] },
+                  { id: "hg_curtains", name: "Шторы и карнизы", children: [] },
+                  { id: "hg_tablecloths", name: "Скатерти и салфетки", children: [] },
+                ],
+              },
+              {
+                id: "hg_decor",
+                name: "Декор и интерьер",
+                children: [
+                  { id: "hg_vases", name: "Вазы", children: [] },
+                  { id: "hg_frames", name: "Рамки и картины", children: [] },
+                  { id: "hg_clocks", name: "Часы", children: [] },
+                  { id: "hg_mirrors", name: "Зеркала", children: [] },
+                  { id: "hg_candles", name: "Свечи и ароматы для дома", children: [] },
+                  { id: "hg_decor_pillows", name: "Декоративные подушки", children: [] },
+                  { id: "hg_rugs", name: "Ковры и коврики", children: [] },
+                ],
+              },
+              {
+                id: "hg_light",
+                name: "Освещение",
+                children: [
+                  { id: "hg_ceiling", name: "Потолочные светильники и люстры", children: [] },
+                  { id: "hg_table_lamps", name: "Настольные лампы и торшеры", children: [] },
+                  { id: "hg_led", name: "LED-ленты и лампы", children: [] },
+                  { id: "hg_outdoor_light", name: "Уличное освещение", children: [] },
+                ],
+              },
+              {
+                id: "hg_storage",
+                name: "Хранение и порядок",
+                children: [
+                  { id: "hg_boxes", name: "Коробки и корзины", children: [] },
+                  { id: "hg_hangers", name: "Вешалки и плечики", children: [] },
+                  { id: "hg_organizers", name: "Органайзеры", children: [] },
+                ],
+              },
+              {
+                id: "hg_clean",
+                name: "Уборка и хозтовары",
+                children: [
+                  { id: "hg_buckets", name: "Вёдра и совки", children: [] },
+                  { id: "hg_mops", name: "Швабры и щётки", children: [] },
+                  { id: "hg_gloves", name: "Перчатки и хозтовары", children: [] },
+                ],
+              },
+              {
+                id: "hg_bath",
+                name: "Ванная комната",
+                children: [
+                  { id: "hg_bath_acc", name: "Аксессуары для ванной", children: [] },
+                  { id: "hg_bath_mats", name: "Коврики", children: [] },
+                ],
+              },
+              {
+                id: "hg_laundry",
+                name: "Стирка и глажка",
+                children: [
+                  { id: "hg_drying", name: "Сушилки для белья", children: [] },
+                  { id: "hg_ironing", name: "Гладильные доски и принадлежности", children: [] },
+                ],
+              },
+              {
+                id: "hg_garden_tools",
+                name: "Садовый инвентарь",
+                children: [
+                  { id: "hg_shovels", name: "Лопаты и грабли", children: [] },
+                  { id: "hg_pruners", name: "Секаторы и сучкорезы", children: [] },
+                  { id: "hg_wheelbarrows", name: "Тачки и тележки", children: [] },
+                ],
+              },
+              {
+                id: "hg_plants",
+                name: "Растения и посадка",
+                children: [
+                  { id: "hg_seeds", name: "Семена и луковицы", children: [] },
+                  { id: "hg_pots", name: "Горшки и кашпо", children: [] },
+                  { id: "hg_live_plants", name: "Живые растения", children: [] },
+                ],
+              },
+              {
+                id: "hg_irrigation",
+                name: "Полив и орошение",
+                children: [
+                  { id: "hg_hoses", name: "Шланги и наконечники", children: [] },
+                  { id: "hg_watering", name: "Лейки и распылители", children: [] },
+                  { id: "hg_auto_water", name: "Автополив и таймеры", children: [] },
+                ],
+              },
+              {
+                id: "hg_soils",
+                name: "Грунты и удобрения",
+                children: [
+                  { id: "hg_soil", name: "Грунты и субстраты", children: [] },
+                  { id: "hg_fertilizer", name: "Удобрения", children: [] },
+                ],
+              },
+              {
+                id: "hg_greenhouse",
+                name: "Теплицы и парники",
+                children: [{ id: "hg_greenhouse_sets", name: "Теплицы и парники", children: [] }],
+              },
+              {
+                id: "hg_outdoor",
+                name: "Отдых на даче",
+                children: [
+                  { id: "hg_bbq", name: "Мангалы и грили", children: [] },
+                  { id: "hg_outdoor_furniture", name: "Садовая мебель и зонты", children: [] },
+                  { id: "hg_hammocks", name: "Качели и гамаки", children: [] },
+                ],
+              },
             ],
           },
+          { id: "kids", name: "Детские товары", children: [] },
+          {
+            id: "beauty_health",
+            name: "Красота и здоровье",
+            children: [
+              {
+                id: "bh_hair",
+                name: "Уход за волосами",
+                children: [
+                  { id: "bh_hair_shampoo", name: "Шампуни и кондиционеры", children: [] },
+                  { id: "bh_hair_oils", name: "Масла и сыворотки", children: [] },
+                  { id: "bh_hair_styling", name: "Средства для укладки", children: [] },
+                  { id: "bh_hair_combs", name: "Расчески и щетки", children: [] },
+                  { id: "bh_hair_color", name: "Окрашивание и химическая завивка", children: [] },
+                  { id: "bh_hair_sets", name: "Косметические наборы", children: [] },
+                  { id: "bh_hair_extensions", name: "Наращивание волос", children: [] },
+                  { id: "bh_hair_caps", name: "Шапочки для душа", children: [] },
+                  { id: "bh_hair_curlers", name: "Бигуди", children: [] },
+                  { id: "bh_hair_wigs", name: "Парики и шиньоны", children: [] },
+                  { id: "bh_hair_pro_tools", name: "Профессиональные инструменты парикмахера", children: [] },
+                ],
+              },
+              {
+                id: "bh_face",
+                name: "Уход за лицом",
+                children: [
+                  { id: "bh_face_cleanse", name: "Очищение и умывание", children: [] },
+                  { id: "bh_face_scrub", name: "Скрабы и пилинги", children: [] },
+                  { id: "bh_face_moist", name: "Увлажнение и питание", children: [] },
+                  { id: "bh_face_masks", name: "Маски", children: [] },
+                  { id: "bh_face_patches", name: "Патчи", children: [] },
+                  { id: "bh_face_problem", name: "Средства для проблемной кожи", children: [] },
+                  { id: "bh_face_antiage", name: "Антивозрастной уход", children: [] },
+                  { id: "bh_face_sets", name: "Наборы средств для лица", children: [] },
+                  { id: "bh_face_tools", name: "Инструменты косметологические", children: [] },
+                ],
+              },
+              {
+                id: "bh_nails",
+                name: "Маникюр и педикюр",
+                children: [
+                  { id: "bh_nails_polish", name: "Лаки и гели для ногтей", children: [] },
+                  { id: "bh_nails_design", name: "Дизайн ногтей", children: [] },
+                  { id: "bh_nails_tools", name: "Инструменты и аксессуары", children: [] },
+                  { id: "bh_nails_equip", name: "Оборудование для маникюра и педикюра", children: [] },
+                  { id: "bh_nails_tips", name: "Типсы и формы для наращивания", children: [] },
+                  { id: "bh_nails_care", name: "Уход за кожей и ногтями", children: [] },
+                  { id: "bh_nails_antiseptic", name: "Антисептические средства", children: [] },
+                  { id: "bh_nails_bath", name: "Ванночки и парафинотерапия", children: [] },
+                ],
+              },
+              {
+                id: "bh_perfume",
+                name: "Парфюмерия",
+                children: [
+                  { id: "bh_perfume_edp", name: "Парфюмерная вода", children: [] },
+                  { id: "bh_perfume_edt", name: "Туалетная вода", children: [] },
+                  { id: "bh_perfume_parfum", name: "Духи", children: [] },
+                  { id: "bh_perfume_oil", name: "Духи сухие и масляные", children: [] },
+                  { id: "bh_perfume_niche", name: "Нишевая парфюмерия", children: [] },
+                  { id: "bh_perfume_mists", name: "Дымки и вуали", children: [] },
+                  { id: "bh_perfume_bulk", name: "Наливная парфюмерия", children: [] },
+                  { id: "bh_perfume_cologne", name: "Одеколоны", children: [] },
+                  { id: "bh_perfume_sets", name: "Парфюмированный набор", children: [] },
+                ],
+              },
+              {
+                id: "bh_kids_cos",
+                name: "Детская косметика и парфюмерия",
+                children: [
+                  { id: "bh_kids_decor", name: "Декоративная косметика", children: [] },
+                  { id: "bh_kids_perfume", name: "Парфюмерия", children: [] },
+                  { id: "bh_kids_bath", name: "Средства для купания", children: [] },
+                  { id: "bh_kids_hair", name: "Средства для укладки волос", children: [] },
+                  { id: "bh_kids_manicure", name: "Маникюр", children: [] },
+                ],
+              },
+              {
+                id: "bh_pregnancy",
+                name: "Беременным и кормящим",
+                children: [{ id: "bh_pregnancy_goods", name: "Товары для беременных и кормящих", children: [] }],
+              },
+              {
+                id: "bh_hardware",
+                name: "Аппаратная косметология и массаж",
+                children: [
+                  { id: "bh_hw_massagers", name: "Массажеры", children: [] },
+                  { id: "bh_hw_devices", name: "Косметологические аппараты", children: [] },
+                  { id: "bh_hw_epilators", name: "Эпиляторы", children: [] },
+                  { id: "bh_hw_gels", name: "Контактные гели", children: [] },
+                ],
+              },
+              {
+                id: "bh_aroma",
+                name: "Ароматерапия",
+                children: [{ id: "bh_aroma_goods", name: "Ароматерапия", children: [] }],
+              },
+              {
+                id: "bh_tattoo",
+                name: "Оборудование и материалы для тату-салона",
+                children: [
+                  { id: "bh_tattoo_machines", name: "Тату-машинки и аксессуары", children: [] },
+                  { id: "bh_tattoo_ink", name: "Краски и расходники", children: [] },
+                  { id: "bh_tattoo_aftercare", name: "Уход за татуировками", children: [] },
+                  { id: "bh_tattoo_sets", name: "Тату-наборы", children: [] },
+                  { id: "bh_tattoo_remove", name: "Удаления татуировок", children: [] },
+                  { id: "bh_tattoo_piercing", name: "Инструменты для пирсинга", children: [] },
+                ],
+              },
+              {
+                id: "bh_salon_furniture",
+                name: "Мебель и оборудование для салонов красоты",
+                children: [
+                  { id: "bh_salon_massage_eq", name: "Массажное оборудование", children: [] },
+                  { id: "bh_salon_mani_room", name: "Для кабинетов маникюра и педикюра", children: [] },
+                  { id: "bh_salon_hair", name: "Для парикмахеров", children: [] },
+                  { id: "bh_salon_cosm", name: "Для косметологов", children: [] },
+                  { id: "bh_salon_visage", name: "Для визажистов", children: [] },
+                  { id: "bh_salon_chairs", name: "Стулья мастеров для салонов красоты", children: [] },
+                ],
+              },
+              {
+                id: "bh_sun",
+                name: "Загар и защита от солнца",
+                children: [
+                  { id: "bh_sun_screen", name: "Солнцезащитные средства", children: [] },
+                  { id: "bh_sun_spf_care", name: "Косметика для ухода с SPF", children: [] },
+                  { id: "bh_sun_tan", name: "Средства для загара", children: [] },
+                  { id: "bh_sun_after", name: "Средства после загара", children: [] },
+                  { id: "bh_sun_solarium", name: "Средства для солярия", children: [] },
+                  { id: "bh_sun_selftan", name: "Автозагар", children: [] },
+                ],
+              },
+              {
+                id: "bh_men_cos",
+                name: "Мужская косметика",
+                children: [
+                  { id: "bh_men_shave", name: "Бритье и уход за бородой", children: [] },
+                  { id: "bh_men_perfume", name: "Парфюмерия", children: [] },
+                  { id: "bh_men_hair", name: "Для волос", children: [] },
+                  { id: "bh_men_shower", name: "Гели для душа", children: [] },
+                  { id: "bh_men_deo", name: "Дезодоранты", children: [] },
+                  { id: "bh_men_sets", name: "Наборы для гигиены", children: [] },
+                ],
+              },
+              {
+                id: "bh_body",
+                name: "Уход за телом",
+                children: [
+                  { id: "bh_body_creams", name: "Кремы", children: [] },
+                  { id: "bh_body_moist", name: "Увлажнение и питание", children: [] },
+                  { id: "bh_body_shower", name: "Средства для душа", children: [] },
+                  { id: "bh_body_soap", name: "Мыло", children: [] },
+                  { id: "bh_body_loofah", name: "Мочалки", children: [] },
+                  { id: "bh_body_scrub", name: "Скрабы и пилинги", children: [] },
+                  { id: "bh_body_bath", name: "Средства для принятия ванны", children: [] },
+                  { id: "bh_body_deo", name: "Дезодоранты", children: [] },
+                  { id: "bh_body_cellulite", name: "Средства против целлюлита и растяжек", children: [] },
+                  { id: "bh_body_brush", name: "Щетки для сухого массажа", children: [] },
+                  { id: "bh_body_depil", name: "Депиляция и эпиляция", children: [] },
+                  { id: "bh_body_sets", name: "Наборы косметики", children: [] },
+                  { id: "bh_body_sticks", name: "Стики для тела", children: [] },
+                ],
+              },
+              {
+                id: "bh_makeup",
+                name: "Макияж",
+                children: [
+                  { id: "bh_makeup_face", name: "Лицо", children: [] },
+                  { id: "bh_makeup_eyes", name: "Глаза", children: [] },
+                  { id: "bh_makeup_lips", name: "Губы", children: [] },
+                  { id: "bh_makeup_brows", name: "Брови", children: [] },
+                  { id: "bh_makeup_acc", name: "Аксессуары для макияжа", children: [] },
+                  { id: "bh_makeup_sets", name: "Наборы для макияжа", children: [] },
+                  { id: "bh_makeup_atomizers", name: "Атомайзеры и флаконы", children: [] },
+                  { id: "bh_makeup_permanent", name: "Перманентный макияж", children: [] },
+                  { id: "bh_makeup_temp_tattoo", name: "Временные татуировки и стразы", children: [] },
+                ],
+              },
+            ],
+          },
+          { id: "home_appliances", name: "Бытовая техника", children: [] },
+          { id: "sports_leisure", name: "Спорт и отдых", children: [] },
+          { id: "construction_repair", name: "Строительство и ремонт", children: [] },
+          { id: "food_products", name: "Продукты питания", children: [] },
+          { id: "pharmacy", name: "Аптека", children: [] },
+          { id: "pet_products", name: "Товары для животных", children: [] },
+          { id: "books", name: "Книги", children: [] },
+          { id: "tourism_outdoor", name: "Туризм, рыбалка, охота", children: [] },
+          { id: "car_accessories", name: "Автотовары", children: [] },
+          { id: "furniture", name: "Мебель", children: [] },
+          { id: "hobbies_crafts", name: "Хобби и творчество", children: [] },
+          { id: "jewelry", name: "Ювелирные украшения", children: [] },
+          { id: "accessories", name: "Аксессуары", children: [] },
+          { id: "games_consoles", name: "Игры и консоли", children: [] },
+          { id: "stationery", name: "Канцелярские товары", children: [] },
+          { id: "adult_products", name: "Товары для взрослых", children: [] },
+          { id: "antiques_collectibles", name: "Антиквариат и коллекционирование", children: [] },
+          { id: "digital_products", name: "Цифровые товары", children: [] },
+          { id: "ozon_gift_certificates", name: "Подарочные сертификаты OZON", children: [] },
+          { id: "household_chemistry", name: "Бытовая химия и гигиена", children: [] },
+          { id: "music_video", name: "Музыка и видео", children: [] },
+          { id: "automobiles", name: "Автомобили", children: [] },
         ];
 
         function findNodeByPath(path) {
+          const pth = normalizeCategoryPath(path);
           let nodes = categoryRoot;
           let node = null;
-          for (const id of path) {
+          for (const id of pth) {
             node = nodes.find((n) => n.id === id) || null;
             if (!node) return null;
             nodes = node.children || [];
@@ -1434,9 +2163,10 @@
         }
 
         function categoryPathNames(path) {
+          const pth = normalizeCategoryPath(path);
           let nodes = categoryRoot;
           const names = [];
-          for (const id of path) {
+          for (const id of pth) {
             const node = nodes.find((n) => n.id === id);
             if (!node) break;
             names.push(node.name);
@@ -1446,39 +2176,21 @@
         }
 
         function getChildrenForPath(path) {
-          if (!path.length) return categoryRoot;
-          const node = findNodeByPath(path);
-          return node ? node.children || [] : categoryRoot;
-        }
-
-        function flattenCategories(nodes, acc = [], path = []) {
-          for (const n of nodes) {
-            const nextPath = [...path, n.id];
-            acc.push({ path: nextPath, name: n.name, full: categoryPathNames(nextPath).join(" → ") });
-            if (n.children && n.children.length) flattenCategories(n.children, acc, nextPath);
+          const pth = normalizeCategoryPath(path);
+          if (!pth.length) return categoryRoot;
+          let p = pth.slice();
+          let node = findNodeByPath(p);
+          if (!node) return categoryRoot;
+          // Если путь указывает на лист (или устаревший id), поднимаемся к ближайшему предку с дочерними узлами — иначе список пустой и кажется, что «категории не подтянулись».
+          while (p.length && node && (!node.children || !node.children.length)) {
+            p = p.slice(0, -1);
+            node = p.length ? findNodeByPath(p) : null;
           }
-          return acc;
+          if (!p.length) return categoryRoot;
+          node = findNodeByPath(p);
+          return node && node.children && node.children.length ? node.children : categoryRoot;
         }
 
-        const flatCats = flattenCategories(categoryRoot);
-
-        function categorySuggestionsFromTitle(title) {
-          const t = (title || "").toLowerCase();
-          const weights = [
-            { k: "чехол", path: ["electronics", "phones", "cases"] },
-            { k: "плен", path: ["electronics", "phones", "glass"] },
-            { k: "стек", path: ["electronics", "phones", "glass"] },
-            { k: "заряд", path: ["electronics", "phones", "chargers"] },
-            { k: "кабель", path: ["electronics", "phones", "chargers"] },
-            { k: "науш", path: ["electronics", "audio", "headphones"] },
-          ];
-          const hits = [];
-          for (const w of weights) {
-            if (t.includes(w.k)) hits.push(w.path);
-          }
-          const uniq = Array.from(new Set(hits.map((p) => p.join("/")))).map((s) => s.split("/"));
-          return uniq.slice(0, 5);
-        }
 
         function renderTitleSuggest() {
           const list = buildTitleSuggestions(draft.title);
@@ -1490,48 +2202,18 @@
             .join("");
         }
 
-        function renderCategorySuggest() {
-          const byTitle = categorySuggestionsFromTitle(draft.title).map((p) => ({
-            label: categoryPathNames(p).join(" → "),
-            path: p,
-          }));
-
-          const q = (els.categorySearch.value || "").trim().toLowerCase();
-          const bySearch = q
-            ? flatCats
-                .filter((c) => c.full.toLowerCase().includes(q))
-                .slice(0, 6)
-                .map((c) => ({ label: c.full, path: c.path }))
-            : [];
-
-          const merged = [...byTitle, ...bySearch];
-          const uniq = [];
-          const seen = new Set();
-          for (const m of merged) {
-            const key = m.path.join("/");
-            if (seen.has(key)) continue;
-            seen.add(key);
-            uniq.push(m);
-          }
-
-          els.categorySuggest.innerHTML = uniq.length
-            ? uniq
-                .slice(0, 6)
-                .map(
-                  (m) =>
-                    `<button type="button" data-catpath="${m.path.join(",")}">${m.label}</button>`
-                )
-                .join("")
-            : `<div class="hint" style="padding:12px">Нет подсказок — выбери в дереве ниже.</div>`;
-        }
-
         function renderCategoryTree() {
-          const children = getChildrenForPath(draft.categoryPath);
-          const names = categoryPathNames(draft.categoryPath);
+          const q = (els.categorySearch.value || "").trim().toLowerCase();
+          const catPath = normalizeCategoryPath(draft.categoryPath);
+          let children = getChildrenForPath(catPath);
+          if (q) {
+            children = children.filter((c) => c.name.toLowerCase().includes(q));
+          }
+          const names = categoryPathNames(catPath);
           els.categoryPathHint.textContent = names.length ? `Выбрано: ${names.join(" → ")}` : "Не выбрано";
 
           const items = [];
-          if (draft.categoryPath.length) {
+          if (catPath.length) {
             items.push(
               `<div class="treeItem" data-tree="up"><div>← Назад</div><div class="chev"></div></div>`
             );
@@ -1683,7 +2365,6 @@
           els.categorySearch.value = els.categorySearch.value || "";
 
           renderTitleSuggest();
-          renderCategorySuggest();
           renderCategoryTree();
           renderMedia();
           renderAddress();
@@ -1788,14 +2469,7 @@
         });
 
         // Step 3 category
-        els.categorySearch.addEventListener("input", () => renderCategorySuggest());
-
-        els.categorySuggest.addEventListener("click", (e) => {
-          const btn = e.target.closest("button[data-catpath]");
-          if (!btn) return;
-          const path = btn.dataset.catpath.split(",").filter(Boolean);
-          saveDraft({ categoryPath: path });
-        });
+        els.categorySearch.addEventListener("input", () => renderCategoryTree());
 
         els.categoryTree.addEventListener("click", (e) => {
           const item = e.target.closest(".treeItem");
