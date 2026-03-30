@@ -53,8 +53,11 @@
         text-align: left;
       }
       .draftCardLink {
-        display: grid;
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
         gap: 0;
+        min-height: 0;
         text-decoration: none;
         color: inherit;
         cursor: pointer;
@@ -68,10 +71,14 @@
       }
       .draftCover {
         position: relative;
-        width: 100%;
+        flex: 0 0 auto;
+        width: 104px;
+        min-width: 88px;
+        max-width: 40%;
         aspect-ratio: 3 / 4;
         background: #e8e8e8;
         overflow: hidden;
+        align-self: flex-start;
       }
       .draftCoverImg {
         position: absolute;
@@ -95,9 +102,12 @@
         height: auto;
       }
       .draftCardBody {
+        flex: 1 1 0;
+        min-width: 0;
         display: grid;
         gap: 8px;
         padding: 12px 14px;
+        align-content: start;
       }
       .draftBadge {
         display: inline-block;
@@ -166,7 +176,7 @@
       />
 
       <div class="draftCard" id="draftCard" hidden>
-        <a class="draftCardLink" id="draftCardLink" href="./create-ad.html?_p=main-home-cover-v1" aria-label="Продолжить черновик объявления">
+        <a class="draftCardLink" id="draftCardLink" href="./create-ad.html?_p=category-path-hint-v1" aria-label="Продолжить черновик объявления">
           <div class="draftCover">
             <img class="draftCoverImg" id="draftCoverImg" alt="" hidden decoding="async" />
             <div class="draftCoverPlaceholder" id="draftCoverPlaceholder" aria-hidden="true">
@@ -187,7 +197,7 @@
         </a>
       </div>
 
-      <a class="btn" href="./create-ad.html?new=1&_p=main-home-cover-v1" id="btnCreateAd" aria-label="Создать новое объявление">Создать объявление</a>
+      <a class="btn" href="./create-ad.html?new=1&_p=category-path-hint-v1" id="btnCreateAd" aria-label="Создать новое объявление">Создать объявление</a>
       <a class="btn btnSecondary" href="./ui-kit.html" aria-label="Open UI kit page">UI kit</a>
     </div>
     <script>

@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="main-home-cover-v1" />
+    <meta name="prototype-build" content="category-path-hint-v1" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "main-home-cover-v1";
+        var NEED = "category-path-hint-v1";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -362,62 +362,13 @@
         outline-offset: 2px;
       }
 
-      .categoryTreeBlock {
-        margin-top: 0;
-        display: grid;
-        gap: 0;
-        border-radius: var(--radiusMd, 10px);
-        padding: 12px;
-        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.04));
-      }
-
-      .step[data-step="3"] .tree {
-        border: 0;
-        background: transparent;
-        border-radius: var(--radiusMd);
-        overflow: hidden;
-      }
-
-      .step[data-step="3"] .treeItem {
-        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.04));
-      }
-
-      .step[data-step="3"] .treeItem:last-child {
-        border-bottom: 0;
-      }
-
-      .treeItemBranch {
-        cursor: default;
-        pointer-events: none;
-      }
-
-      .treeItemBranch .treeItemLabel {
-        font-weight: 650;
-        color: var(--muted);
-        font-size: 13px;
-      }
-
-      .treeItemLeaf {
-        cursor: pointer;
-      }
-
-      .treeItemLeaf:focus-visible {
-        outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
-        outline-offset: -2px;
-      }
-
-      .treeItemLeaf .chevOk {
-        color: var(--muted);
-        font-weight: 800;
-      }
-
-      .treeItemLeaf.treeItem--selected .chevOk {
+      .step[data-step="3"] .treeItem.treeItem--selected .chev {
         color: #16a34a;
       }
 
-      .chevBranch {
-        width: 8px;
+      #categoryPathHint {
+        margin-top: 10px;
+        padding: 0 2px;
       }
 
       .step[data-step="4"] .pill,
@@ -860,9 +811,8 @@
         <!-- 3. Категория -->
         <section class="step" data-step="3">
           <div class="card">
-            <div class="categoryTreeBlock">
-              <div class="tree" id="categoryTree"></div>
-            </div>
+            <div class="tree" id="categoryTree"></div>
+            <p class="hint" id="categoryPathHint" aria-live="polite">Не выбрано</p>
           </div>
         </section>
 
@@ -1021,6 +971,7 @@
           titleSuggest: document.getElementById("titleSuggest"),
 
           categoryTree: document.getElementById("categoryTree"),
+          categoryPathHint: document.getElementById("categoryPathHint"),
 
           conditionPills: document.getElementById("conditionPills"),
           adTypePills: document.getElementById("adTypePills"),
@@ -2237,6 +2188,21 @@
           return names;
         }
 
+        function getChildrenForPath(path) {
+          const pth = normalizeCategoryPath(path);
+          if (!pth.length) return categoryRoot;
+          let p = pth.slice();
+          let node = findNodeByPath(p);
+          if (!node) return categoryRoot;
+          while (p.length && node && (!node.children || !node.children.length)) {
+            p = p.slice(0, -1);
+            node = p.length ? findNodeByPath(p) : null;
+          }
+          if (!p.length) return categoryRoot;
+          node = findNodeByPath(p);
+          return node && node.children && node.children.length ? node.children : categoryRoot;
+        }
+
         function escapeHtml(str) {
           return String(str)
             .replace(/&/g, "&amp;")
@@ -2263,36 +2229,29 @@
 
         function renderCategoryTree() {
           const catPath = normalizeCategoryPath(draft.categoryPath);
-          const chunks = [];
-
-          function walk(nodes, depth, parentPath) {
-            for (const n of nodes) {
-              const path = [...parentPath, n.id];
-              const hasKids = n.children && n.children.length;
-              const pad = 12 + depth * 16;
-              if (hasKids) {
-                chunks.push(
-                  `<div class="treeItem treeItemBranch" style="padding-left:${pad}px" role="presentation">
-                    <div class="treeItemLabel">${escapeHtml(n.name)}</div>
-                    <div class="chev chevBranch" aria-hidden="true"></div>
-                  </div>`
-                );
-                walk(n.children, depth + 1, path);
-              } else {
-                const selected = pathsEqualCategory(path, catPath);
-                const pathStr = path.join(",");
-                chunks.push(
-                  `<div class="treeItem treeItemLeaf${selected ? " treeItem--selected" : ""}" style="padding-left:${pad}px" data-tree="leaf" data-path="${pathStr}" role="button" tabindex="0">
-                    <div class="treeItemLabel">${escapeHtml(n.name)}</div>
-                    <div class="chev chevOk" aria-hidden="true">✓</div>
-                  </div>`
-                );
-              }
-            }
+          const children = getChildrenForPath(catPath);
+          const items = [];
+          if (catPath.length) {
+            items.push(
+              `<div class="treeItem" data-tree="up"><div>← Назад</div><div class="chev"></div></div>`
+            );
           }
-
-          walk(categoryRoot, 0, []);
-          els.categoryTree.innerHTML = chunks.join("");
+          for (const c of children) {
+            const hasKids = c.children && c.children.length;
+            const nextPath = [...catPath, c.id];
+            const isLeafSelected = !hasKids && pathsEqualCategory(nextPath, catPath);
+            items.push(
+              `<div class="treeItem${isLeafSelected ? " treeItem--selected" : ""}" data-tree="node" data-id="${c.id}">
+                <div>${escapeHtml(c.name)}</div>
+                <div class="chev">${hasKids ? "›" : "✓"}</div>
+              </div>`
+            );
+          }
+          els.categoryTree.innerHTML = items.join("");
+          const names = categoryPathNames(catPath);
+          els.categoryPathHint.textContent = names.length
+            ? `Выбрано: ${names.join(" → ")}`
+            : "Не выбрано";
         }
 
         function renderMedia() {
@@ -2534,20 +2493,18 @@
           saveDraft({ title: val });
         });
 
-        // Step 3 category — полное дерево, выбор только листьев
+        // Step 3 category — уровни дерева (вперёд / назад)
         els.categoryTree.addEventListener("click", (e) => {
-          const item = e.target.closest(".treeItemLeaf");
+          const item = e.target.closest(".treeItem");
           if (!item) return;
-          const path = (item.dataset.path || "").split(",").filter(Boolean);
-          saveDraft({ categoryPath: path });
-        });
-        els.categoryTree.addEventListener("keydown", (e) => {
-          if (e.key !== "Enter" && e.key !== " ") return;
-          const item = e.target.closest(".treeItemLeaf");
-          if (!item) return;
-          e.preventDefault();
-          const path = (item.dataset.path || "").split(",").filter(Boolean);
-          saveDraft({ categoryPath: path });
+          if (item.dataset.tree === "up") {
+            saveDraft({ categoryPath: normalizeCategoryPath(draft.categoryPath).slice(0, -1) });
+            return;
+          }
+          if (item.dataset.tree === "node" && item.dataset.id) {
+            const nextPath = [...normalizeCategoryPath(draft.categoryPath), item.dataset.id];
+            saveDraft({ categoryPath: nextPath });
+          }
         });
 
         // Step 4 condition
