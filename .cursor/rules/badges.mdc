@@ -1,13 +1,14 @@
 ---
-description: Стиль бейджей (типографика H4, радиус, Figma smoothing)
+description: Стиль бейджей (типографика 12 semibold, отступы, радиус)
 alwaysApply: false
 globs: "**/*.html"
 ---
 
 # Бейджи
 
-- **Текст**: как **H4** в проекте — Onest **SemiBold 600**, **14px**, **uppercase**, letter-spacing как у `.type-h4`.
+- **Текст**: Onest **SemiBold (600)**, **12px**. Для образца типографики без фона см. класс `.type-badge` в `ui-kit.html`.
+- **Отступы**: **2px** сверху и снизу, **6px** слева и справа (`padding`, токены `--badge-padding-y`, `--badge-padding-x`).
 - **Скругление**: **6px** (`border-radius`, токен `--badge-radius`).
-- **Figma**: для углов может быть задано **corner smoothing 60%**. В вебе это пока не дублируется pixel-perfect стандартным CSS; ориентир — **6px**; при необходимости позже уточнить squircle / токены.
+- **Figma**: углы могут иметь **corner smoothing 60%** — в вебе пока ориентир `border-radius: 6px`.
 
-Перед сменой внешнего вида бейджей сверяйся с `ui-kit.html` (секция «Бейджи»).
+Перед сменой внешнего вида бейджей сверяйся с `ui-kit.html` (секция «Бейджи» и типографика).

@@ -37,7 +37,10 @@
         --icon-close: #001a34;
         --icon-add-media: #ffffff;
         --proj-h4-size: 14px;
+        --proj-badge-size: 12px;
         --badge-radius: 6px;
+        --badge-padding-y: 2px;
+        --badge-padding-x: 6px;
       }
 
       html,
@@ -388,11 +391,11 @@
         background: rgba(0, 0, 0, 0.6);
         color: #fff;
         border-radius: var(--badge-radius, 6px);
-        padding: 4px 8px;
+        padding: var(--badge-padding-y, 2px) var(--badge-padding-x, 6px);
         font-family: var(--font);
-        font-size: var(--proj-h4-size, 14px);
+        font-size: var(--proj-badge-size, 12px);
         font-weight: 600;
-        line-height: 1.3;
+        line-height: 1.2;
         letter-spacing: 0.02em;
         text-transform: uppercase;
       }
