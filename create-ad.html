@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="nav-draft-home-new" />
+    <meta name="prototype-build" content="title-tags-rotate-no-exact" />
     <title>Создать объявление — Ozon ADV</title>
 
     <style>
@@ -268,6 +268,13 @@
       .step[data-step="2"] .card .input {
         border: 0;
         background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
+        outline: none;
+        box-shadow: none;
+      }
+
+      .step[data-step="2"] .card .input:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+        outline-offset: 2px;
       }
 
       /* Подсказки названия — теги (paragraph, серый фон, чёрный текст). */
@@ -1007,14 +1014,30 @@
         ];
 
         function buildTitleSuggestions(text) {
-          const q = (text || "").trim().toLowerCase();
+          const current = (text || "").trim();
+          const q = current.toLowerCase();
           if (!q) return [];
+
           const candidates = [];
           for (const b of titleBases) {
             for (const t of titleTails) candidates.push(`${b} ${t}`);
           }
           const uniq = Array.from(new Set(candidates));
-          return uniq.filter((s) => s.toLowerCase().includes(q)).slice(0, 6);
+
+          const notExact = (s) => s.trim().toLowerCase() !== current.toLowerCase();
+
+          let results = uniq.filter((s) => s.toLowerCase().includes(q)).filter(notExact);
+
+          /* После выбора тега полное совпадение с подсказкой исчезает из списка; если по полной строке
+             больше нет вариантов — показываем другие по первому слову (например «Чехол …»). */
+          if (results.length === 0 && current.length > 0) {
+            const firstWord = current.split(/\s+/)[0]?.toLowerCase() || "";
+            if (firstWord.length >= 2) {
+              results = uniq.filter((s) => s.toLowerCase().includes(firstWord)).filter(notExact);
+            }
+          }
+
+          return results.slice(0, 6);
         }
 
         const categoryRoot = [
