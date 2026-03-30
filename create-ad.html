@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="media-add-blue-important-inline" />
+    <meta name="prototype-build" content="step2-title-tags" />
     <title>Создать объявление — Ozon ADV</title>
 
     <style>
@@ -256,6 +256,46 @@
         border-color: color-mix(in srgb, var(--primary) 50%, transparent);
         background: color-mix(in srgb, var(--primary) 12%, transparent);
         color: var(--primary);
+      }
+
+      .step[data-step="2"] .card {
+        border: 0;
+        background: transparent;
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .step[data-step="2"] .card .input {
+        border: 0;
+        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
+      }
+
+      /* Подсказки названия — теги (paragraph, серый фон, чёрный текст). */
+      .titleTagList {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 4px;
+        min-height: 0;
+      }
+
+      .titleTag {
+        appearance: none;
+        border: 0;
+        margin: 0;
+        cursor: pointer;
+        font: 400 16px/1.35 var(--font);
+        color: #000;
+        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
+        border-radius: var(--radiusMd, 10px);
+        padding: 8px 12px;
+        text-align: left;
+        max-width: 100%;
+      }
+
+      .titleTag:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+        outline-offset: 2px;
       }
 
       .suggest {
@@ -619,17 +659,11 @@
         <!-- 2. Название -->
         <section class="step" data-step="2">
           <div class="card">
-            <h2 class="h">Название</h2>
             <div class="field">
               <div class="label">Как называется товар?</div>
-              <input class="input" id="titleInput" placeholder="Например: Чехол" />
-              <div class="hint">Подсказки обновляются по мере ввода.</div>
+              <input class="input" id="titleInput" placeholder="" autocomplete="off" />
             </div>
-
-            <div class="field">
-              <div class="label">Подсказки</div>
-              <div class="suggest" id="titleSuggest"></div>
-            </div>
+            <div class="titleTagList" id="titleSuggest"></div>
           </div>
         </section>
 
@@ -948,15 +982,13 @@
 
         function buildTitleSuggestions(text) {
           const q = (text || "").trim().toLowerCase();
+          if (!q) return [];
           const candidates = [];
           for (const b of titleBases) {
             for (const t of titleTails) candidates.push(`${b} ${t}`);
           }
           const uniq = Array.from(new Set(candidates));
-          const filtered = q
-            ? uniq.filter((s) => s.toLowerCase().includes(q)).slice(0, 6)
-            : uniq.slice(0, 6);
-          return filtered;
+          return uniq.filter((s) => s.toLowerCase().includes(q)).slice(0, 6);
         }
 
         const categoryRoot = [
@@ -1062,7 +1094,10 @@
         function renderTitleSuggest() {
           const list = buildTitleSuggestions(draft.title);
           els.titleSuggest.innerHTML = list
-            .map((s) => `<button type="button" data-suggest="${encodeURIComponent(s)}">${s}</button>`)
+            .map(
+              (s) =>
+                `<button type="button" class="titleTag" data-suggest="${encodeURIComponent(s)}">${s}</button>`
+            )
             .join("");
         }
 
@@ -1329,7 +1364,7 @@
         });
 
         els.titleSuggest.addEventListener("click", (e) => {
-          const btn = e.target.closest("button[data-suggest]");
+          const btn = e.target.closest("button.titleTag[data-suggest]");
           if (!btn) return;
           const val = decodeURIComponent(btn.dataset.suggest);
           saveDraft({ title: val });
