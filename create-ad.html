@@ -33,6 +33,9 @@
         --gap: var(--spacing300, 12px);
         --font: var(--fontFamiliesBrand, "Onest"), system-ui, -apple-system, Segoe UI, Roboto, Arial,
           sans-serif;
+        /* Цвета иконок — перед сменой всегда уточняй у дизайнера (см. правило в .cursor/rules). */
+        --icon-close: var(--ozTextSecondary, rgba(0, 0, 0, 0.56));
+        --icon-add-media: #ffffff;
       }
 
       html,
@@ -88,16 +91,16 @@
         border: 0;
         border-radius: 999px;
         background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
-        color: var(--ozTextSecondary, rgba(0, 0, 0, 0.56));
         display: inline-grid;
         place-items: center;
         cursor: pointer;
       }
 
-      .closeBtn img {
+      .closeBtn svg {
         width: 16px;
         height: 16px;
         display: block;
+        color: var(--icon-close);
       }
 
       .closeBtn:focus-visible {
@@ -331,10 +334,11 @@
         place-items: center;
       }
 
-      .mediaTileAdd .addIconWrap img {
+      .mediaTileAdd .addIconWrap svg {
         width: 16px;
         height: 16px;
         display: block;
+        color: var(--icon-add-media);
       }
 
       .mediaTile img,
@@ -500,7 +504,12 @@
       <header class="topbar">
         <div class="navRow">
           <button class="closeBtn" id="closeFlow" type="button" aria-label="Закрыть">
-            <img src="./assets/cross.svg" width="16" height="16" alt="" aria-hidden="true" />
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path
+                d="M11.7 2.53287C12.1881 2.04488 12.9794 2.04477 13.4675 2.53287C13.9555 3.02098 13.9555 3.81233 13.4675 4.30045L9.76831 7.99966L13.4675 11.6999C13.9554 12.188 13.9556 12.9794 13.4675 13.4674C12.9795 13.9555 12.1881 13.9553 11.7 13.4674L7.99976 9.76822L4.30054 13.4674C3.81242 13.9554 3.02107 13.9554 2.53296 13.4674C2.04486 12.9793 2.04497 12.188 2.53296 11.6999L6.23218 7.99966L2.53296 4.30045C2.0448 3.81229 2.0448 3.02102 2.53296 2.53287C3.02111 2.04471 3.81238 2.04471 4.30054 2.53287L7.99976 6.23209L11.7 2.53287Z"
+                fill="currentColor"
+              />
+            </svg>
           </button>
         </div>
       </header>
@@ -1037,7 +1046,12 @@
           tiles.push(
             `<button class="mediaTile mediaTileAdd" type="button" id="mediaAddBtn" aria-label="Добавить фото или видео">
               <span class="addIconWrap" aria-hidden="true">
-                <img src="./assets/photo.svg" width="16" height="16" alt="" />
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path
+                    d="M8.09277 0.5C10.0967 0.500095 10.7234 1.28717 11.0547 2.32031C14.6808 2.77953 15.5 4.37006 15.5 8.41699C15.4999 13.4167 14.2499 14.667 8 14.667C1.75014 14.667 0.500054 13.4167 0.5 8.41699C0.5 4.2995 1.34811 2.72438 5.1377 2.29688C5.47104 1.27522 6.10372 0.5 8.09277 0.5ZM8 6.33301C7.53976 6.33301 7.16699 6.70676 7.16699 7.16699V8H6.33301C5.87303 8.00018 5.50018 8.37303 5.5 8.83301C5.5 9.29314 5.87292 9.66682 6.33301 9.66699H7.16699V10.5C7.16699 10.9602 7.53976 11.333 8 11.333C8.46024 11.333 8.83301 10.9602 8.83301 10.5V9.66699H9.66699C10.1271 9.66682 10.5 9.29314 10.5 8.83301C10.4998 8.37303 10.127 8.00018 9.66699 8H8.83301V7.16699C8.83301 6.70676 8.46024 6.33301 8 6.33301ZM3.83301 4.66699C3.37292 4.66717 3 5.03987 3 5.5C3 5.96013 3.37292 6.33283 3.83301 6.33301C4.29325 6.33301 4.66699 5.96024 4.66699 5.5C4.66699 5.03976 4.29325 4.66699 3.83301 4.66699Z"
+                    fill="currentColor"
+                  />
+                </svg>
               </span>
             </button>`
           );
