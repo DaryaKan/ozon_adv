@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="map-photon-v1" />
+    <meta name="prototype-build" content="free-osm-map-v4" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "map-photon-v1";
+        var NEED = "free-osm-map-v4";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -33,12 +33,7 @@
       rel="stylesheet"
       href="https://st.ozone.ru/s3/shared-deps/%40bx-fe/ui-kit/dist/common/index.css"
     />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      crossorigin="anonymous"
-    />
-
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
     <style>
       :root {
         --bg: var(--ozBGPrimary, #fff);
@@ -502,10 +497,6 @@
         font-size: 11px;
         line-height: 1.35;
         color: rgba(0, 0, 0, 0.45);
-      }
-
-      .addressMapActions {
-        margin-top: 12px;
       }
 
       /* Подсказки названия — теги (paragraph, серый фон, чёрный текст). */
@@ -1011,7 +1002,6 @@
 
             <div id="addressMap">
               <div class="field mapSearchWrap">
-                <div class="label">Поиск адреса</div>
                 <input
                   class="input"
                   id="addressSearchInput"
@@ -1019,6 +1009,7 @@
                   placeholder="Город, улица, дом"
                   autocomplete="off"
                   spellcheck="false"
+                  aria-label="Адрес на карте"
                   aria-autocomplete="list"
                   aria-controls="addressSuggest"
                   aria-expanded="false"
@@ -1026,13 +1017,12 @@
                 <div id="addressSuggest" class="addressSuggest" role="listbox" hidden></div>
               </div>
               <div id="leafletMap" class="leafletMap" aria-label="Интерактивная карта"></div>
-              <p class="mapAttr">Карта © OpenStreetMap · подсказки адресов — Photon (данные OpenStreetMap)</p>
+              <p class="mapAttr">
+                Карта © OpenStreetMap · подсказки адресов — Photon (данные OSM, без ключа API)
+              </p>
               <div class="field" style="margin-top: 12px">
                 <div class="label">Дом / квартира</div>
                 <input class="input" id="houseInput" placeholder="Например: 12к1" inputmode="text" autocomplete="address-line2" />
-              </div>
-              <div class="addressMapActions">
-                <button type="button" class="btn btnSecondary" id="addressSaveMapBtn">Сохранить адрес</button>
               </div>
             </div>
           </div>
@@ -1145,7 +1135,6 @@
           addressLine: document.getElementById("addressLine"),
           addressSearchInput: document.getElementById("addressSearchInput"),
           addressSuggest: document.getElementById("addressSuggest"),
-          addressSaveMapBtn: document.getElementById("addressSaveMapBtn"),
           leafletMap: document.getElementById("leafletMap"),
           houseInput: document.getElementById("houseInput"),
           editAddress: document.getElementById("editAddress"),
@@ -4748,9 +4737,27 @@
           if (!f || !f.properties) return "";
           const p = f.properties;
           const street = [p.housenumber, p.street].filter(Boolean).join(" ");
-          const city = [p.postcode, p.city].filter(Boolean).join(" ");
-          const parts = [street || p.name, city, p.country].filter(Boolean);
+          const locality =
+            p.city || p.town || p.village || p.district || p.locality || p.county || "";
+          const cityPart = [p.postcode, locality].filter(Boolean).join(" ");
+          const parts = [street || p.name, cityPart, p.country].filter(Boolean);
           return parts.join(", ") || p.name || "";
+        }
+
+        function formatCoordsLatLng(lat, lng) {
+          const la = Number(lat);
+          const lo = Number(lng);
+          if (!Number.isFinite(la) || !Number.isFinite(lo)) return "";
+          return `${la.toFixed(5)}, ${lo.toFixed(5)}`;
+        }
+
+        function bestPhotonLabelFromFeatures(features) {
+          if (!Array.isArray(features)) return "";
+          for (const f of features) {
+            const lb = labelFromPhotonFeature(f);
+            if (lb && lb.trim()) return lb.trim();
+          }
+          return "";
         }
 
         function hideAddressSuggest() {
@@ -4758,6 +4765,26 @@
           els.addressSuggest.hidden = true;
           els.addressSuggest.innerHTML = "";
           if (els.addressSearchInput) els.addressSearchInput.setAttribute("aria-expanded", "false");
+        }
+
+        async function reverseGeocodePhoton(lat, lng) {
+          const fallback = formatCoordsLatLng(lat, lng);
+          saveDraft({ mapLat: lat, mapLng: lng, mapLabel: fallback });
+          if (els.addressSearchInput) els.addressSearchInput.value = fallback;
+          try {
+            const res = await fetch(
+              `https://photon.komoot.io/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(
+                lng
+              )}&lang=ru`
+            );
+            if (!res.ok) return;
+            const js = await res.json();
+            const label = bestPhotonLabelFromFeatures(js.features) || fallback;
+            saveDraft({ mapLat: lat, mapLng: lng, mapLabel: label });
+            if (els.addressSearchInput) els.addressSearchInput.value = label;
+          } catch {
+            /* координаты уже в черновике и в инпуте */
+          }
         }
 
         function applyMapPick(lat, lng, label) {
@@ -4770,25 +4797,6 @@
               leafletMap.setView([lat, lng], 16, { animate: true });
             }
           });
-        }
-
-        async function reverseGeocodePhoton(lat, lng) {
-          try {
-            const res = await fetch(
-              `https://photon.komoot.io/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(
-                lng
-              )}&lang=ru`
-            );
-            if (!res.ok) return;
-            const js = await res.json();
-            const f = js.features && js.features[0];
-            if (!f) return;
-            const label = labelFromPhotonFeature(f);
-            saveDraft({ mapLat: lat, mapLng: lng, mapLabel: label });
-            if (els.addressSearchInput) els.addressSearchInput.value = label;
-          } catch {
-            saveDraft({ mapLat: lat, mapLng: lng });
-          }
         }
 
         async function searchPhoton(q) {
@@ -4938,7 +4946,9 @@
           if (step === 7) {
             const hasSaved = Boolean(draft.addressLine && draft.addressLine.trim());
             if (!hasSaved) {
-              requestAnimationFrame(() => initLeafletIfNeeded());
+              requestAnimationFrame(() => {
+                initLeafletIfNeeded();
+              });
             }
           }
         }
@@ -5154,13 +5164,6 @@
         els.editAddress.addEventListener("click", () => {
           const prev = (draft.addressLine || "").trim();
           saveDraft({ addressLine: "", mapLabel: prev || draft.mapLabel || "" });
-        });
-
-        els.addressSaveMapBtn.addEventListener("click", () => {
-          const label = (els.addressSearchInput.value.trim() || draft.mapLabel || "").trim();
-          if (!label) return;
-          const h = (draft.house || "").trim();
-          saveDraft({ addressLine: h ? `${label}, ${h}` : label, mapLabel: "" });
         });
 
         els.addressSearchInput.addEventListener("input", () => {
