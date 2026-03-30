@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="media-3cells-dashed-only" />
+    <meta name="prototype-build" content="media-add-cell-blue-bg" />
     <title>Создать объявление — Ozon ADV</title>
 
     <style>
@@ -343,6 +343,14 @@
         border: 2px dashed rgba(0, 0, 0, 0.12);
       }
 
+      /* Первая ячейка: голубой фон (специфичность выше, чем у общего > .mediaTile). */
+      .mediaGrid.mediaGridCols3 > .mediaTile.mediaTileAdd {
+        place-items: center;
+        background: color-mix(in srgb, var(--primary) 12%, #fff);
+        border: 0;
+        cursor: pointer;
+      }
+
       /* Глобальные стили button из UI-kit часто задают min-height — ломают 3:4. */
       .mediaGrid.mediaGridCols3 > button.mediaTile {
         appearance: none;
@@ -386,14 +394,7 @@
         outline-offset: 1px;
       }
 
-      .mediaTile.mediaTileAdd {
-        place-items: center;
-        background: color-mix(in srgb, var(--primary) 12%, #fff);
-        border: 0;
-        cursor: pointer;
-      }
-
-      .mediaTile.mediaTileAdd .addIconWrap {
+      .mediaGrid.mediaGridCols3 > .mediaTile.mediaTileAdd .addIconWrap {
         width: 44px;
         height: 44px;
         border-radius: 14px;
@@ -402,7 +403,7 @@
         place-items: center;
       }
 
-      .mediaTile.mediaTileAdd .addIconWrap svg {
+      .mediaGrid.mediaGridCols3 > .mediaTile.mediaTileAdd .addIconWrap svg {
         width: 16px;
         height: 16px;
         display: block;
