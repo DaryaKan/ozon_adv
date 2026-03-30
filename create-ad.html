@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="free-osm-map-v17" />
+    <meta name="prototype-build" content="title-wiki-awesomplete-v18" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
@@ -34,6 +34,11 @@
       href="https://st.ozone.ru/s3/shared-deps/%40bx-fe/ui-kit/dist/common/index.css"
     />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.css"
+      crossorigin="anonymous"
+    />
     <style>
       :root {
         --bg: var(--ozBGPrimary, #fff);
@@ -85,17 +90,6 @@
         grid-template-columns: 1fr;
         gap: 10px;
         align-items: center;
-      }
-
-      .iconBtn {
-        appearance: none;
-        border: 1px solid var(--stroke);
-        background: #fff;
-        color: inherit;
-        border-radius: 999px;
-        padding: 10px 12px;
-        cursor: pointer;
-        font: 650 13px/1 var(--font);
       }
 
       .navRow {
@@ -371,6 +365,10 @@
         outline-offset: 2px;
       }
 
+      .step[data-step="6"] .card .textarea {
+        min-height: 240px;
+      }
+
       .priceInputRow {
         display: flex;
         align-items: center;
@@ -382,13 +380,6 @@
       .priceInputRow .input {
         flex: 1;
         min-width: 0;
-      }
-
-      .priceCurrency {
-        flex-shrink: 0;
-        font: 400 16px/1.35 var(--font);
-        color: var(--text);
-        user-select: none;
       }
 
       .descGenRow {
@@ -575,32 +566,33 @@
         color: rgba(0, 0, 0, 0.45);
       }
 
-      /* Подсказки названия — теги (paragraph, серый фон, чёрный текст). */
-      .titleTagList {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 4px;
-        min-height: 0;
+      /* Шаг 2: Awesomplete + Wikipedia opensearch (бесплатно, без ключа). */
+      .step[data-step="2"] .card .field {
+        position: relative;
       }
 
-      .titleTag {
-        appearance: none;
-        border: 0;
-        margin: 0;
-        cursor: pointer;
-        font: 400 16px/1.35 var(--font);
-        color: #000;
-        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
-        border-radius: var(--radiusMd, 10px);
-        padding: 8px 12px;
-        text-align: left;
-        max-width: 100%;
+      /* Awesomplete 1.x: список — .awesomplete > ul (не awesomplete__list) */
+      .step[data-step="2"] .awesomplete > ul {
+        margin: 4px 0 0;
+        padding: 4px 0;
+        border-radius: 12px;
+        border: 1px solid var(--stroke);
+        background: var(--surface);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        max-height: 220px;
+        overflow: auto;
+        z-index: 30;
       }
 
-      .titleTag:focus-visible {
-        outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
-        outline-offset: 2px;
+      .step[data-step="2"] .awesomplete > ul > li {
+        padding: 10px 12px;
+        font: 400 15px/1.35 var(--font);
+        color: var(--text);
+      }
+
+      .step[data-step="2"] .awesomplete > ul > li[aria-selected="true"],
+      .step[data-step="2"] .awesomplete > ul > li:hover {
+        background: rgba(0, 91, 255, 0.08);
       }
 
       .suggest {
@@ -940,30 +932,75 @@
         transform: translateX(20px);
       }
 
-      .qtyRow {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 10px;
+      /* Степпер количества: капсула, − | число | + */
+      .qtyStepper {
+        display: flex;
+        align-items: stretch;
+        width: min(100%, 280px);
+        background: #f2f4f7;
+        border-radius: 999px;
+        overflow: hidden;
+        min-height: 52px;
+        box-sizing: border-box;
+      }
+
+      .qtyStepperBtn {
+        appearance: none;
+        border: 0;
+        margin: 0;
+        padding: 0 22px;
+        background: transparent;
+        color: var(--text, #0a0e1a);
+        cursor: pointer;
+        font: 400 24px/1 var(--font);
+        display: flex;
         align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+        min-width: 48px;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
       }
 
-      .qtyRow .iconBtn {
-        font-size: 22px;
-        font-weight: 650;
-        line-height: 1;
-        min-width: 44px;
-        padding-left: 14px;
-        padding-right: 14px;
+      .qtyStepperBtn:hover {
+        background: rgba(0, 0, 0, 0.04);
       }
 
-      .qtyRow .inputQty {
-        width: 100%;
-        max-width: 72px;
-        min-width: 0;
-        justify-self: center;
+      .qtyStepperBtn:active {
+        background: rgba(0, 0, 0, 0.07);
+      }
+
+      .qtyStepperBtn:focus-visible {
+        outline: none;
+        box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 45%, transparent);
+        position: relative;
+        z-index: 1;
+      }
+
+      .qtyStepperInput {
+        flex: 1 1 auto;
+        min-width: 40px;
+        width: 56px;
+        border: 0;
+        margin: 0;
+        padding: 12px 4px;
+        background: transparent;
         text-align: center;
-        padding-left: 8px;
-        padding-right: 8px;
+        font: 700 18px/1.25 var(--font);
+        color: var(--text, #0a0e1a);
+        box-sizing: border-box;
+        outline: none;
+        box-shadow: none;
+      }
+
+      .qtyStepperInput:focus-visible {
+        box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 45%, transparent);
+        position: relative;
+        z-index: 1;
+      }
+
+      .qtyStepperInput::placeholder {
+        color: rgba(0, 0, 0, 0.35);
       }
 
       .step {
@@ -1202,9 +1239,9 @@
                 placeholder=""
                 autocomplete="off"
                 aria-label="Название товара"
+                aria-autocomplete="list"
               />
             </div>
-            <div class="titleTagList" id="titleSuggest"></div>
           </div>
         </section>
 
@@ -1308,8 +1345,8 @@
                   inputmode="numeric"
                   placeholder="0"
                   aria-label="Сумма в рублях"
+                  autocomplete="off"
                 />
-                <span class="priceCurrency" aria-hidden="true">₽</span>
               </div>
             </div>
 
@@ -1332,16 +1369,21 @@
             </div>
 
             <div class="field" id="qtyField" style="display:none">
-              <div class="qtyRow">
-                <button class="iconBtn" id="qtyMinus" type="button" aria-label="Уменьшить количество">−</button>
+              <div class="qtyStepper" role="group" aria-label="Количество товара">
+                <button class="qtyStepperBtn" id="qtyMinus" type="button" aria-label="Уменьшить количество">
+                  −
+                </button>
                 <input
-                  class="input inputQty"
+                  class="qtyStepperInput"
                   id="qtyInput"
+                  type="text"
                   inputmode="numeric"
-                  placeholder="Количество"
+                  autocomplete="off"
                   aria-label="Количество товара"
                 />
-                <button class="iconBtn" id="qtyPlus" type="button" aria-label="Увеличить количество">+</button>
+                <button class="qtyStepperBtn" id="qtyPlus" type="button" aria-label="Увеличить количество">
+                  +
+                </button>
               </div>
             </div>
           </div>
@@ -1421,6 +1463,10 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"
+      crossorigin="anonymous"
+    ></script>
     <script src="./ad-storage.js"></script>
     <script>
       (function () {
@@ -1439,7 +1485,6 @@
           mediaGrid: document.getElementById("mediaGrid"),
 
           titleInput: document.getElementById("titleInput"),
-          titleSuggest: document.getElementById("titleSuggest"),
 
           categoryTree: document.getElementById("categoryTree"),
           categoryPathHint: document.getElementById("categoryPathHint"),
@@ -1528,6 +1573,10 @@
         let addressSuggestTimer = null;
         let addressSuggestAbort = null;
         let reverseGeocodeAbort = null;
+        let titleWikiAbort = null;
+        let titleWikiTimer = null;
+        let titleAwesomplete = null;
+        let titleRemoteSuggestions = [];
 
         function loadDraft() {
           try {
@@ -1537,6 +1586,7 @@
             delete parsed.media;
             const merged = { ...defaultDraft(), ...parsed, media: [] };
             merged.categoryPath = normalizeCategoryPath(merged.categoryPath);
+            merged.price = normalizePriceDigits(merged.price);
             return merged;
           } catch {
             return defaultDraft();
@@ -1612,7 +1662,7 @@
         function syncDraftFromDom() {
           draft.title = els.titleInput.value;
           draft.description = els.descInput.value;
-          draft.price = els.priceInput.value;
+          draft.price = normalizePriceDigits(els.priceInput.value);
           draft.addressLine = els.addressLine.value;
           const q = Number.parseInt(String(els.qtyInput.value || "1"), 10);
           draft.qty = Number.isFinite(q) ? Math.max(1, q) : 1;
@@ -1626,6 +1676,13 @@
           draft.categoryPath = normalizeCategoryPath(draft.categoryPath);
           persistDraftToStorage();
           render();
+        }
+
+        /** Обновить черновик без полного render (шаг 2: не сбрасывать Awesomplete при каждом символе). */
+        function updateTitleDraftOnly(patch) {
+          draft = { ...draft, ...patch };
+          draft.categoryPath = normalizeCategoryPath(draft.categoryPath);
+          persistDraftToStorage();
         }
 
         function reset() {
@@ -1650,6 +1707,20 @@
           if (!n) return "";
           const thin = "\u202f";
           return new Intl.NumberFormat("ru-RU").format(n).replace(/[\s\u00a0\u202f]+/g, thin);
+        }
+
+        function normalizePriceDigits(v) {
+          return String(v == null ? "" : v).replace(/\D/g, "");
+        }
+
+        /** Шаг 8: полупробел между разрядами + ₽ внутри поля (храним в черновике только цифры). */
+        function formatPriceInputDisplay(digitsOnly) {
+          const d = normalizePriceDigits(digitsOnly);
+          if (d === "") return "";
+          const n = parseInt(d, 10);
+          if (!Number.isFinite(n) || n < 0) return "";
+          const numPart = n === 0 ? "0" : formatRUB(String(n)) || "0";
+          return numPart + "\u202f₽";
         }
 
         function formatIntThinSpace(v) {
@@ -1893,6 +1964,90 @@
           }
 
           return results.slice(0, 6);
+        }
+
+        function mergeTitleSuggestions(local, remote) {
+          const seen = new Set();
+          const out = [];
+          function add(s) {
+            const t = String(s).trim();
+            if (!t) return;
+            const k = t.toLowerCase();
+            if (seen.has(k)) return;
+            seen.add(k);
+            out.push(t);
+          }
+          for (const s of local) add(s);
+          for (const s of remote) add(s);
+          return out.slice(0, 12);
+        }
+
+        async function fetchWikiTitleSuggestions(query, signal) {
+          const q = (query || "").trim();
+          if (q.length < 2) return [];
+          const url =
+            "https://ru.wikipedia.org/w/api.php?action=opensearch&search=" +
+            encodeURIComponent(q) +
+            "&limit=10&namespace=0&format=json&origin=*";
+          const res = await fetch(url, { signal });
+          if (!res.ok) throw new Error("wiki");
+          const data = await res.json();
+          const titles = Array.isArray(data[1]) ? data[1] : [];
+          return titles.map((t) => String(t).trim()).filter(Boolean);
+        }
+
+        function scheduleTitleWikiRefresh() {
+          if (titleWikiTimer) clearTimeout(titleWikiTimer);
+          titleWikiTimer = setTimeout(() => {
+            titleWikiTimer = null;
+            const step = draft.step || 1;
+            if (step !== 2) return;
+            const q = (els.titleInput.value || "").trim();
+            if (q.length < 2) {
+              titleRemoteSuggestions = [];
+              refreshTitleSuggest();
+              return;
+            }
+            if (titleWikiAbort) titleWikiAbort.abort();
+            titleWikiAbort = new AbortController();
+            fetchWikiTitleSuggestions(q, titleWikiAbort.signal)
+              .then((titles) => {
+                titleRemoteSuggestions = titles;
+                refreshTitleSuggest();
+              })
+              .catch((e) => {
+                if (e && e.name === "AbortError") return;
+                titleRemoteSuggestions = [];
+                refreshTitleSuggest();
+              });
+          }, 280);
+        }
+
+        function refreshTitleSuggest() {
+          if (!titleAwesomplete) return;
+          const q = (draft.title || "").trim();
+          const local = buildTitleSuggestions(q);
+          const step = draft.step || 1;
+          const remote = step === 2 ? titleRemoteSuggestions : [];
+          const merged = mergeTitleSuggestions(local, remote);
+          titleAwesomplete.list = merged;
+          titleAwesomplete.evaluate();
+        }
+
+        function initTitleAwesomplete() {
+          if (typeof window.Awesomplete === "undefined") return;
+          titleAwesomplete = new Awesomplete(els.titleInput, {
+            minChars: 1,
+            maxItems: 12,
+            sort: false,
+          });
+          titleAwesomplete.list = [];
+          els.titleInput.addEventListener("awesomplete-select", function (ev) {
+            const s = ev.text;
+            const val =
+              s && typeof s === "object" && "value" in s && s.value != null ? s.value : s != null ? String(s) : "";
+            saveDraft({ title: val });
+          });
         }
 
         /** «Электроника», «Одежда», «Обувь», «Красота и здоровье», «Дом и сад» — 3 уровня; остальные корни — 2–3 уровня по мере наполнения. */
@@ -4968,16 +5123,6 @@
           return aa.every((id, i) => id === bb[i]);
         }
 
-        function renderTitleSuggest() {
-          const list = buildTitleSuggestions(draft.title);
-          els.titleSuggest.innerHTML = list
-            .map(
-              (s) =>
-                `<button type="button" class="titleTag" data-suggest="${encodeURIComponent(s)}">${s}</button>`
-            )
-            .join("");
-        }
-
         function renderCategoryTree() {
           const catPath = normalizeCategoryPath(draft.categoryPath);
           const { viewPath, children } = resolveCategoryView(draft.categoryPath);
@@ -5355,6 +5500,8 @@
             s.dataset.active = s.dataset.step === String(step) ? "true" : "false";
           }
 
+          if (step !== 2) titleRemoteSuggestions = [];
+
           els.nextBtn.textContent = step === TOTAL ? "Опубликовать" : "Далее";
 
           if (step <= 1) {
@@ -5370,9 +5517,9 @@
           // Sync fields
           els.titleInput.value = draft.title || "";
           els.descInput.value = draft.description || "";
-          els.priceInput.value = draft.price || "";
+          els.priceInput.value = formatPriceInputDisplay(draft.price);
 
-          renderTitleSuggest();
+          refreshTitleSuggest();
           renderCategoryTree();
           renderMedia();
           renderAddress();
@@ -5561,17 +5708,17 @@
           reorderMedia(from, to);
         });
 
-        // Step 2 title
-        els.titleInput.addEventListener("input", () => {
-          saveDraft({ title: els.titleInput.value });
-        });
-
-        els.titleSuggest.addEventListener("click", (e) => {
-          const btn = e.target.closest("button.titleTag[data-suggest]");
-          if (!btn) return;
-          const val = decodeURIComponent(btn.dataset.suggest);
-          saveDraft({ title: val });
-        });
+        // Step 2 title — Awesomplete + локальный пул + Wikipedia opensearch (без ключа).
+        // capture: true — обновить list до встроенного input Awesomplete, иначе evaluate идёт по старому списку.
+        els.titleInput.addEventListener(
+          "input",
+          () => {
+            updateTitleDraftOnly({ title: els.titleInput.value });
+            refreshTitleSuggest();
+            scheduleTitleWikiRefresh();
+          },
+          true
+        );
 
         // Step 3 category — уровни дерева (вперёд / назад)
         els.categoryTree.addEventListener("click", (e) => {
@@ -5707,7 +5854,10 @@
         }
 
         // Step 8 price/qty
-        els.priceInput.addEventListener("input", () => saveDraft({ price: els.priceInput.value }));
+        els.priceInput.addEventListener("input", () => {
+          const digits = normalizePriceDigits(els.priceInput.value).slice(0, 12);
+          saveDraft({ price: digits });
+        });
         els.qtyToggle.addEventListener("click", () => {
           const next = !draft.qtyEnabled;
           saveDraft({ qtyEnabled: next, qty: next ? Math.max(1, Number(draft.qty || 1)) : 1 });
@@ -5740,6 +5890,7 @@
         };
 
         initDraft();
+        initTitleAwesomplete();
         render();
       })();
     </script>
