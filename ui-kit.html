@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ozon ADV — UI kit</title>
+
+    <!-- Ozon font (from Ozon CDN) -->
+    <style>
+      @font-face {
+        font-family: "Onest";
+        font-weight: 100 900;
+        font-display: swap;
+        src: url("https://st.ozone.ru/s3/ozon-fonts/onest.woff2") format("woff2");
+      }
+    </style>
+
+    <!-- Ozon UI-kit tokens (from Ozon CDN). If it doesn't load, fallbacks below still render. -->
+    <link
+      rel="stylesheet"
+      href="https://st.ozone.ru/s3/shared-deps/%40bx-fe/ui-kit/dist/common/index.css"
+    />
+
+    <style>
+      :root {
+        --_bg: var(--ozWhite, #ffffff);
+        --_surface: var(--ozBGPrimary, #ffffff);
+        --_text: var(--ozTextPrimary, #0a0a0a);
+        --_muted: var(--ozTextQuaternary, rgba(0, 0, 0, 0.56));
+        --_primary: var(--ozCtrlPrimary, #005bff);
+        --_primaryHover: var(--ozCtrlPrimaryHover, #0a4ee6);
+        --_stroke: var(--ozSeparator, rgba(0, 0, 0, 0.12));
+        --_radius: var(--borderRadius400, 12px);
+        --_radiusSm: var(--borderRadius300, 10px);
+        --_pad: var(--spacing400, 16px);
+        --_gap: var(--spacing300, 12px);
+        --_font: var(--fontFamiliesBrand, "Onest"), system-ui, -apple-system, Segoe UI, Roboto,
+          Arial, sans-serif;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--_font);
+        color: var(--_text);
+        background: var(--_bg);
+      }
+
+      .app {
+        min-height: 100%;
+        padding: 20px 16px 48px;
+        display: grid;
+        gap: 16px;
+        max-width: 420px;
+        margin: 0 auto;
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+      }
+
+      .title {
+        font-size: 22px;
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+
+      .link {
+        color: var(--_primary);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .section {
+        background: var(--_surface);
+        border: 1px solid var(--_stroke);
+        border-radius: var(--_radius);
+        padding: var(--_pad);
+        display: grid;
+        gap: var(--_gap);
+      }
+
+      .section h2 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: var(--_muted);
+      }
+
+      .row {
+        display: grid;
+        gap: 10px;
+      }
+
+      .label {
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .hint {
+        font-size: 12px;
+        color: var(--_muted);
+      }
+
+      .input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 12px;
+        border-radius: var(--_radiusSm);
+        border: 1px solid var(--_stroke);
+        background: var(--ozFieldBackground, #fff);
+        color: inherit;
+        font: 500 15px/1.2 var(--_font);
+        outline: none;
+      }
+
+      .input:focus {
+        border-color: color-mix(in srgb, var(--_primary) 60%, transparent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--_primary) 22%, transparent);
+      }
+
+      .btn {
+        appearance: none;
+        border: 0;
+        cursor: pointer;
+        padding: 12px 14px;
+        border-radius: var(--_radiusSm);
+        font: 650 15px/1.1 var(--_font);
+        background: var(--_primary);
+        color: #fff;
+      }
+
+      .btn:active {
+        transform: translateY(1px);
+      }
+
+      .btn:hover {
+        background: var(--_primaryHover);
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--_stroke);
+        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.04));
+        color: inherit;
+        font: 650 13px/1 var(--_font);
+        user-select: none;
+      }
+
+      .chip[aria-pressed="true"] {
+        border-color: color-mix(in srgb, var(--_primary) 50%, transparent);
+        background: color-mix(in srgb, var(--_primary) 12%, transparent);
+      }
+
+      .chip svg {
+        width: 18px;
+        height: 18px;
+        color: var(--_muted);
+      }
+
+      .chip[aria-pressed="true"] svg {
+        color: var(--_primary);
+      }
+
+      .tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+      }
+
+      .tab {
+        text-align: center;
+        padding: 10px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--_stroke);
+        background: transparent;
+        font: 650 13px/1 var(--_font);
+        color: inherit;
+      }
+
+      .tab[aria-selected="true"] {
+        border-color: color-mix(in srgb, var(--_primary) 50%, transparent);
+        background: color-mix(in srgb, var(--_primary) 12%, transparent);
+        color: var(--_primary);
+      }
+
+      .icons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+
+      .iconCard {
+        display: grid;
+        justify-items: center;
+        gap: 8px;
+        padding: 12px 10px;
+        border-radius: var(--_radiusSm);
+        border: 1px solid var(--_stroke);
+        background: #fff;
+      }
+
+      .iconCard svg {
+        width: 22px;
+        height: 22px;
+        color: var(--ozIconPrimary, rgba(0, 0, 0, 0.72));
+      }
+
+      .iconName {
+        font-size: 11px;
+        color: var(--_muted);
+        text-align: center;
+      }
+
+      .gridDemo {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      .gridCell {
+        height: 44px;
+        border-radius: 10px;
+        border: 1px dashed color-mix(in srgb, var(--_primary) 35%, var(--_stroke));
+        background: color-mix(in srgb, var(--_primary) 10%, transparent);
+      }
+
+      .swatches {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .swatch {
+        border-radius: var(--_radiusSm);
+        border: 1px solid var(--_stroke);
+        overflow: hidden;
+        background: #fff;
+      }
+
+      .swatchColor {
+        height: 44px;
+      }
+
+      .swatchMeta {
+        padding: 10px 10px;
+        display: grid;
+        gap: 2px;
+      }
+
+      .swatchMeta .name {
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .swatchMeta .val {
+        font-size: 12px;
+        color: var(--_muted);
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <div class="title">UI kit</div>
+        <a class="link" href="./index.html">Главная</a>
+      </header>
+
+      <section class="section">
+        <h2>Цвета (токены)</h2>
+        <div class="swatches" id="swatches"></div>
+        <div class="hint">
+          Если токены Ozon загрузились, значения будут из `:root` Ozon UI-kit. Если нет — покажутся
+          фолбэки.
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Инпуты</h2>
+        <div class="row">
+          <div class="label">Поиск</div>
+          <input class="input" placeholder="Например: iPhone 15" />
+          <div class="hint">Стили завязаны на переменные `--oz*` (если доступны).</div>
+        </div>
+        <button class="btn" type="button">Primary button</button>
+      </section>
+
+      <section class="section">
+        <h2>Чипсы</h2>
+        <div class="chips" id="chips">
+          <button class="chip" type="button" aria-pressed="true" data-chip="all">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M10 18a1 1 0 0 1-.7-.29l-4-4a1 1 0 1 1 1.4-1.42L10 15.59l7.3-7.3a1 1 0 0 1 1.4 1.42l-8 8A1 1 0 0 1 10 18z"
+              />
+            </svg>
+            Все
+          </button>
+          <button class="chip" type="button" aria-pressed="false" data-chip="new">Новинки</button>
+          <button class="chip" type="button" aria-pressed="false" data-chip="sale">Скидки</button>
+          <button class="chip" type="button" aria-pressed="false" data-chip="near">Рядом</button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Табы</h2>
+        <div class="tabs" role="tablist" aria-label="UI kit tabs" id="tabs">
+          <button class="tab" type="button" role="tab" aria-selected="true" data-tab="tab1">
+            Лента
+          </button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="tab2">
+            Поиск
+          </button>
+          <button class="tab" type="button" role="tab" aria-selected="false" data-tab="tab3">
+            Профиль
+          </button>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Иконки</h2>
+        <div class="icons">
+          <div class="iconCard">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 2a7 7 0 1 0 4.9 12l4.1 4.1a1 1 0 0 0 1.4-1.4l-4.1-4.1A7 7 0 0 0 12 2zm0 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10z"
+              />
+            </svg>
+            <div class="iconName">search</div>
+          </div>
+          <div class="iconCard">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 21s-7-4.35-9.5-8.6C.7 9.2 2.4 6 6 6c2 0 3.2 1.1 4 2 0 0 1.6-2 4-2 3.6 0 5.3 3.2 3.5 6.4C19 16.65 12 21 12 21z"
+              />
+            </svg>
+            <div class="iconName">like</div>
+          </div>
+          <div class="iconCard">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6.2 6H21a1 1 0 0 1 1 .85l1 7A1 1 0 0 1 22 15H7a1 1 0 0 1-1-.76L4.1 4H2a1 1 0 0 1 0-2h3a1 1 0 0 1 .96.73L6.2 6z"
+              />
+            </svg>
+            <div class="iconName">cart</div>
+          </div>
+          <div class="iconCard">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5zm0 2c-4.4 0-8 2.2-8 5v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1c0-2.8-3.6-5-8-5z"
+              />
+            </svg>
+            <div class="iconName">user</div>
+          </div>
+        </div>
+        <div class="hint">Иконки тут — SVG-демо. Когда подтянешь ozon-иконпак, заменим на их набор.</div>
+      </section>
+
+      <section class="section">
+        <h2>Сетка</h2>
+        <div class="gridDemo" aria-label="Grid demo (4 columns)">
+          <div class="gridCell"></div>
+          <div class="gridCell"></div>
+          <div class="gridCell"></div>
+          <div class="gridCell"></div>
+          <div class="gridCell"></div>
+          <div class="gridCell"></div>
+          <div class="gridCell"></div>
+          <div class="gridCell"></div>
+        </div>
+        <div class="hint">Демо 4-колоночной сетки для мобильного прототипа.</div>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        const tokens = [
+          { name: "--ozCtrlPrimary", label: "Primary", fallback: "#005bff" },
+          { name: "--ozTextPrimary", label: "Text primary", fallback: "#0a0a0a" },
+          { name: "--ozBGSecondary", label: "BG secondary", fallback: "rgba(0,0,0,.04)" },
+          { name: "--ozSeparator", label: "Separator", fallback: "rgba(0,0,0,.12)" },
+          { name: "--ozWhite", label: "White", fallback: "#ffffff" },
+          { name: "--ozBlack", label: "Black", fallback: "#000000" },
+        ];
+
+        const root = document.documentElement;
+        const cs = getComputedStyle(root);
+        const swatches = document.getElementById("swatches");
+
+        swatches.innerHTML = tokens
+          .map((t) => {
+            const val = (cs.getPropertyValue(t.name) || "").trim() || t.fallback;
+            return `
+              <div class="swatch">
+                <div class="swatchColor" style="background:${val}"></div>
+                <div class="swatchMeta">
+                  <div class="name">${t.label}</div>
+                  <div class="val">${t.name}: ${val}</div>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+
+        const chips = document.getElementById("chips");
+        chips.addEventListener("click", (e) => {
+          const btn = e.target.closest("button[data-chip]");
+          if (!btn) return;
+          for (const b of chips.querySelectorAll("button[data-chip]")) {
+            b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+          }
+        });
+
+        const tabs = document.getElementById("tabs");
+        tabs.addEventListener("click", (e) => {
+          const btn = e.target.closest("button[data-tab]");
+          if (!btn) return;
+          for (const b of tabs.querySelectorAll("button[data-tab]")) {
+            b.setAttribute("aria-selected", b === btn ? "true" : "false");
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
+
