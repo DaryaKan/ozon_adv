@@ -1,0 +1,1194 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Создать объявление — Ozon ADV</title>
+
+    <style>
+      @font-face {
+        font-family: "Onest";
+        font-weight: 100 900;
+        font-display: swap;
+        src: url("https://st.ozone.ru/s3/ozon-fonts/onest.woff2") format("woff2");
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://st.ozone.ru/s3/shared-deps/%40bx-fe/ui-kit/dist/common/index.css"
+    />
+
+    <style>
+      :root {
+        --bg: var(--ozBGPrimary, #fff);
+        --surface: var(--ozWhite, #fff);
+        --text: var(--ozTextPrimary, #0a0a0a);
+        --muted: var(--ozTextQuaternary, rgba(0, 0, 0, 0.56));
+        --stroke: var(--ozSeparator, rgba(0, 0, 0, 0.12));
+        --primary: var(--ozCtrlPrimary, #005bff);
+        --primaryHover: var(--ozCtrlPrimaryHover, #0a4ee6);
+        --radiusLg: var(--borderRadius400, 12px);
+        --radiusMd: var(--borderRadius300, 10px);
+        --pad: var(--spacing400, 16px);
+        --gap: var(--spacing300, 12px);
+        --font: var(--fontFamiliesBrand, "Onest"), system-ui, -apple-system, Segoe UI, Roboto, Arial,
+          sans-serif;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--text);
+        overflow: hidden;
+      }
+
+      .screen {
+        height: 100%;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+      }
+
+      .topbar {
+        padding: calc(env(safe-area-inset-top) + 10px) 16px 10px;
+        border-bottom: 1px solid var(--stroke);
+        background: var(--surface);
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .iconBtn {
+        appearance: none;
+        border: 1px solid var(--stroke);
+        background: #fff;
+        color: inherit;
+        border-radius: 999px;
+        padding: 10px 12px;
+        cursor: pointer;
+        font: 650 13px/1 var(--font);
+      }
+
+      .titleWrap {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .title {
+        font-size: 16px;
+        font-weight: 750;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .subtitle {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .progress {
+        height: 4px;
+        background: color-mix(in srgb, var(--primary) 10%, transparent);
+        border-radius: 999px;
+        overflow: hidden;
+        margin-top: 8px;
+      }
+
+      .progress > div {
+        height: 100%;
+        width: 0%;
+        background: var(--primary);
+      }
+
+      .content {
+        overflow: auto;
+        padding: 16px;
+        padding-bottom: 24px;
+      }
+
+      .card {
+        border: 1px solid var(--stroke);
+        border-radius: var(--radiusLg);
+        background: var(--surface);
+        padding: var(--pad);
+        display: grid;
+        gap: var(--gap);
+      }
+
+      .h {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 750;
+      }
+
+      .hint {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .label {
+        font-size: 13px;
+        font-weight: 650;
+      }
+
+      .input,
+      .textarea,
+      .select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 12px;
+        border-radius: var(--radiusMd);
+        border: 1px solid var(--stroke);
+        background: #fff;
+        color: inherit;
+        font: 520 15px/1.2 var(--font);
+        outline: none;
+      }
+
+      .textarea {
+        min-height: 120px;
+        resize: vertical;
+      }
+
+      .input:focus,
+      .textarea:focus,
+      .select:focus {
+        border-color: color-mix(in srgb, var(--primary) 60%, transparent);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+      }
+
+      .pillRow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .pill {
+        appearance: none;
+        border: 1px solid var(--stroke);
+        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.04));
+        border-radius: 999px;
+        padding: 10px 12px;
+        cursor: pointer;
+        font: 650 13px/1 var(--font);
+        color: inherit;
+      }
+
+      .pill[aria-pressed="true"] {
+        border-color: color-mix(in srgb, var(--primary) 50%, transparent);
+        background: color-mix(in srgb, var(--primary) 12%, transparent);
+        color: var(--primary);
+      }
+
+      .suggest {
+        border: 1px solid var(--stroke);
+        border-radius: var(--radiusMd);
+        overflow: hidden;
+      }
+
+      .suggest button {
+        width: 100%;
+        border: 0;
+        background: #fff;
+        padding: 12px 12px;
+        text-align: left;
+        cursor: pointer;
+        border-bottom: 1px solid color-mix(in srgb, var(--stroke) 70%, transparent);
+        font: 520 15px/1.2 var(--font);
+      }
+
+      .suggest button:last-child {
+        border-bottom: 0;
+      }
+
+      .tree {
+        border: 1px solid var(--stroke);
+        border-radius: var(--radiusMd);
+        overflow: hidden;
+      }
+
+      .treeItem {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        padding: 12px 12px;
+        border-bottom: 1px solid color-mix(in srgb, var(--stroke) 70%, transparent);
+        background: #fff;
+        cursor: pointer;
+      }
+
+      .treeItem:last-child {
+        border-bottom: 0;
+      }
+
+      .chev {
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .mediaGrid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+
+      .mediaTile {
+        border: 1px dashed color-mix(in srgb, var(--primary) 35%, var(--stroke));
+        border-radius: 12px;
+        background: color-mix(in srgb, var(--primary) 8%, transparent);
+        aspect-ratio: 1 / 1;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .mediaTile img,
+      .mediaTile video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .mediaTile .badge {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        background: rgba(0, 0, 0, 0.6);
+        color: #fff;
+        border-radius: 999px;
+        padding: 4px 8px;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .footer {
+        padding: 12px 16px calc(env(safe-area-inset-bottom) + 12px);
+        border-top: 1px solid var(--stroke);
+        background: var(--surface);
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .btn {
+        appearance: none;
+        border: 0;
+        cursor: pointer;
+        padding: 12px 14px;
+        border-radius: 12px;
+        font: 750 15px/1.1 var(--font);
+        background: var(--primary);
+        color: #fff;
+      }
+
+      .btn:hover {
+        background: var(--primaryHover);
+      }
+
+      .btnSecondary {
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--text);
+        border: 1px solid var(--stroke);
+      }
+
+      .btnSecondary:hover {
+        background: rgba(0, 0, 0, 0.07);
+      }
+
+      .btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .qtyRow {
+        display: grid;
+        grid-template-columns: 1fr auto auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .step {
+        display: none;
+      }
+
+      .step[data-active="true"] {
+        display: grid;
+        gap: 14px;
+      }
+
+      .mapMock {
+        height: 240px;
+        border-radius: 14px;
+        border: 1px solid var(--stroke);
+        background: linear-gradient(135deg, rgba(0, 91, 255, 0.08), rgba(0, 0, 0, 0.03));
+        position: relative;
+        overflow: hidden;
+      }
+
+      .mapMock .pin {
+        position: absolute;
+        left: 50%;
+        top: 52%;
+        transform: translate(-50%, -100%);
+        width: 22px;
+        height: 22px;
+        border-radius: 999px 999px 999px 0;
+        background: var(--primary);
+        rotate: -45deg;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.15);
+      }
+
+      .mapMock .pin::after {
+        content: "";
+        position: absolute;
+        inset: 6px;
+        border-radius: 999px;
+        background: #fff;
+      }
+
+      .productCard {
+        border: 1px solid var(--stroke);
+        border-radius: 16px;
+        overflow: hidden;
+        background: #fff;
+      }
+
+      .productMedia {
+        aspect-ratio: 4 / 3;
+        background: rgba(0, 0, 0, 0.05);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+
+      .productMedia img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .productBody {
+        padding: 14px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .price {
+        font-size: 18px;
+        font-weight: 850;
+      }
+
+      .kvs {
+        display: grid;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="screen">
+      <header class="topbar">
+        <button class="iconBtn" id="backHome" type="button" aria-label="Back to home">Назад</button>
+
+        <div class="titleWrap">
+          <div class="title" id="stepTitle">Создать объявление</div>
+          <div class="subtitle" id="stepSubtitle">Шаг 1 из 10</div>
+          <div class="progress" aria-hidden="true"><div id="progressBar"></div></div>
+        </div>
+
+        <button class="iconBtn" id="resetDraft" type="button">Сброс</button>
+      </header>
+
+      <main class="content">
+        <!-- 1. Внешний вид -->
+        <section class="step" data-step="1">
+          <div class="card">
+            <h2 class="h">Внешний вид</h2>
+            <div class="hint">Добавь фото и/или видео. Первое фото будет обложкой.</div>
+
+            <input
+              class="input"
+              id="mediaInput"
+              type="file"
+              accept="image/*,video/*"
+              multiple
+            />
+
+            <div class="mediaGrid" id="mediaGrid"></div>
+          </div>
+        </section>
+
+        <!-- 2. Название -->
+        <section class="step" data-step="2">
+          <div class="card">
+            <h2 class="h">Название</h2>
+            <div class="field">
+              <div class="label">Как называется товар?</div>
+              <input class="input" id="titleInput" placeholder="Например: Чехол" />
+              <div class="hint">Подсказки обновляются по мере ввода.</div>
+            </div>
+
+            <div class="field">
+              <div class="label">Подсказки</div>
+              <div class="suggest" id="titleSuggest"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Категория -->
+        <section class="step" data-step="3">
+          <div class="card">
+            <h2 class="h">Категория</h2>
+            <div class="field">
+              <div class="label">Поиск категории</div>
+              <input class="input" id="categorySearch" placeholder="Например: Чехол, iPhone, телефон" />
+            </div>
+
+            <div class="field">
+              <div class="label">Подсказки по названию</div>
+              <div class="suggest" id="categorySuggest"></div>
+            </div>
+
+            <div class="field">
+              <div class="label">Дерево категорий</div>
+              <div class="tree" id="categoryTree"></div>
+              <div class="hint" id="categoryPathHint"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. Состояние -->
+        <section class="step" data-step="4">
+          <div class="card">
+            <h2 class="h">Состояние</h2>
+            <div class="pillRow" id="conditionPills">
+              <button class="pill" type="button" data-value="new" aria-pressed="false">Новое</button>
+              <button class="pill" type="button" data-value="used" aria-pressed="false">Б/у</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. Вид объявления -->
+        <section class="step" data-step="5">
+          <div class="card">
+            <h2 class="h">Вид объявления</h2>
+            <div class="pillRow" id="adTypePills">
+              <button class="pill" type="button" data-value="personal" aria-pressed="false">
+                Продаю своё
+              </button>
+              <button class="pill" type="button" data-value="resell" aria-pressed="false">
+                Товар приобретен на продажу
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. Описание -->
+        <section class="step" data-step="6">
+          <div class="card">
+            <h2 class="h">Описание товара</h2>
+            <div class="field">
+              <div class="label">Описание</div>
+              <textarea
+                class="textarea"
+                id="descInput"
+                placeholder="Опишите товар, его параметры, нюансы"
+              ></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. Адрес -->
+        <section class="step" data-step="7">
+          <div class="card">
+            <h2 class="h">Адрес</h2>
+            <div class="hint">
+              Если адрес уже выбран — покажем сохранённый. Если нет — покажем карту выбора дома.
+            </div>
+
+            <div id="addressSaved" style="display:none">
+              <div class="field">
+                <div class="label">Сохранённый адрес</div>
+                <input class="input" id="addressLine" placeholder="Город, улица, дом" />
+                <div class="hint">Можно отредактировать вручную.</div>
+              </div>
+              <button class="btn btnSecondary" id="editAddress" type="button">Выбрать на карте</button>
+            </div>
+
+            <div id="addressMap">
+              <div class="mapMock" aria-label="Map mock">
+                <div class="pin" aria-hidden="true"></div>
+              </div>
+              <div class="field" style="margin-top:12px">
+                <div class="label">Дом</div>
+                <input class="input" id="houseInput" placeholder="Например: 12к1" />
+                <div class="hint">Для прототипа: дом выбирается как значение поля.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. Цена -->
+        <section class="step" data-step="8">
+          <div class="card">
+            <h2 class="h">Цена</h2>
+            <div class="field">
+              <div class="label">Сумма</div>
+              <input class="input" id="priceInput" inputmode="numeric" placeholder="0" />
+            </div>
+
+            <div class="field">
+              <div class="label">Несколько штук в наличии</div>
+              <div class="pillRow" id="qtyToggleRow">
+                <button class="pill" id="qtyToggle" type="button" aria-pressed="false">Выключено</button>
+              </div>
+              <div class="hint">Включи, чтобы указать количество.</div>
+            </div>
+
+            <div class="field" id="qtyField" style="display:none">
+              <div class="label">Количество</div>
+              <div class="qtyRow">
+                <input class="input" id="qtyInput" inputmode="numeric" placeholder="1" />
+                <button class="iconBtn" id="qtyMinus" type="button" aria-label="Minus">−</button>
+                <button class="iconBtn" id="qtyPlus" type="button" aria-label="Plus">+</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. Способ связи -->
+        <section class="step" data-step="9">
+          <div class="card">
+            <h2 class="h">Способ связи</h2>
+            <div class="pillRow" id="contactPills">
+              <button class="pill" type="button" data-value="calls" aria-pressed="false">Только звонки</button>
+              <button class="pill" type="button" data-value="messages" aria-pressed="false">
+                Только сообщения
+              </button>
+              <button class="pill" type="button" data-value="both" aria-pressed="false">
+                Звонки и сообщения
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 10. Карточка товара -->
+        <section class="step" data-step="10">
+          <div class="card">
+            <h2 class="h">Проверка</h2>
+            <div class="hint">Карточка товара из введённых данных.</div>
+
+            <div class="productCard">
+              <div class="productMedia" id="productMedia">Нет фото</div>
+              <div class="productBody">
+                <div class="price" id="productPrice">— ₽</div>
+                <div style="font-size:15px;font-weight:750" id="productTitle">Без названия</div>
+                <div class="kvs" id="productMeta"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <button class="btn btnSecondary" id="prevBtn" type="button">Назад</button>
+        <button class="btn" id="nextBtn" type="button">Далее</button>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        const DRAFT_KEY = "ozon_adv_create_ad_draft_v1";
+        const TOTAL = 10;
+
+        const els = {
+          stepTitle: document.getElementById("stepTitle"),
+          stepSubtitle: document.getElementById("stepSubtitle"),
+          progressBar: document.getElementById("progressBar"),
+          prevBtn: document.getElementById("prevBtn"),
+          nextBtn: document.getElementById("nextBtn"),
+          backHome: document.getElementById("backHome"),
+          resetDraft: document.getElementById("resetDraft"),
+
+          mediaInput: document.getElementById("mediaInput"),
+          mediaGrid: document.getElementById("mediaGrid"),
+
+          titleInput: document.getElementById("titleInput"),
+          titleSuggest: document.getElementById("titleSuggest"),
+
+          categorySearch: document.getElementById("categorySearch"),
+          categorySuggest: document.getElementById("categorySuggest"),
+          categoryTree: document.getElementById("categoryTree"),
+          categoryPathHint: document.getElementById("categoryPathHint"),
+
+          conditionPills: document.getElementById("conditionPills"),
+          adTypePills: document.getElementById("adTypePills"),
+          descInput: document.getElementById("descInput"),
+
+          addressSaved: document.getElementById("addressSaved"),
+          addressMap: document.getElementById("addressMap"),
+          addressLine: document.getElementById("addressLine"),
+          houseInput: document.getElementById("houseInput"),
+          editAddress: document.getElementById("editAddress"),
+
+          priceInput: document.getElementById("priceInput"),
+          qtyToggle: document.getElementById("qtyToggle"),
+          qtyField: document.getElementById("qtyField"),
+          qtyInput: document.getElementById("qtyInput"),
+          qtyMinus: document.getElementById("qtyMinus"),
+          qtyPlus: document.getElementById("qtyPlus"),
+
+          contactPills: document.getElementById("contactPills"),
+
+          productMedia: document.getElementById("productMedia"),
+          productPrice: document.getElementById("productPrice"),
+          productTitle: document.getElementById("productTitle"),
+          productMeta: document.getElementById("productMeta"),
+        };
+
+        const stepTitles = {
+          1: "Внешний вид",
+          2: "Название",
+          3: "Категория",
+          4: "Состояние",
+          5: "Вид объявления",
+          6: "Описание",
+          7: "Адрес",
+          8: "Цена",
+          9: "Способ связи",
+          10: "Карточка товара",
+        };
+
+        const defaultDraft = () => ({
+          step: 1,
+          media: [],
+          title: "",
+          categoryPath: [],
+          condition: "",
+          adType: "",
+          description: "",
+          addressLine: "",
+          house: "",
+          price: "",
+          qtyEnabled: false,
+          qty: 1,
+          contact: "",
+        });
+
+        let draft = loadDraft();
+        let mediaObjectUrls = [];
+
+        function loadDraft() {
+          try {
+            const raw = localStorage.getItem(DRAFT_KEY);
+            if (!raw) return defaultDraft();
+            const parsed = JSON.parse(raw);
+            return { ...defaultDraft(), ...parsed };
+          } catch {
+            return defaultDraft();
+          }
+        }
+
+        function saveDraft(patch) {
+          draft = { ...draft, ...patch };
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+          render();
+        }
+
+        function reset() {
+          localStorage.removeItem(DRAFT_KEY);
+          draft = defaultDraft();
+          cleanupMediaUrls();
+          render();
+        }
+
+        function cleanupMediaUrls() {
+          for (const u of mediaObjectUrls) URL.revokeObjectURL(u);
+          mediaObjectUrls = [];
+        }
+
+        function setStep(step) {
+          const clamped = Math.max(1, Math.min(TOTAL, step));
+          saveDraft({ step: clamped });
+        }
+
+        function formatRUB(v) {
+          const n = Number(String(v).replace(/[^\d]/g, ""));
+          if (!n) return "";
+          return new Intl.NumberFormat("ru-RU").format(n);
+        }
+
+        function pickPill(container, value, key) {
+          for (const b of container.querySelectorAll("button[data-value]")) {
+            b.setAttribute("aria-pressed", b.dataset.value === value ? "true" : "false");
+          }
+          saveDraft({ [key]: value });
+        }
+
+        const titleBases = [
+          "Чехол",
+          "Кабель",
+          "Зарядка",
+          "Наушники",
+          "Пленка",
+          "Стекло защитное",
+          "Пауэрбанк",
+          "Рюкзак",
+        ];
+        const titleTails = [
+          "на телефон",
+          "для iPhone",
+          "для iPhone 13",
+          "для iPhone 14",
+          "для iPhone 15",
+          "для Samsung",
+          "универсальный",
+        ];
+
+        function buildTitleSuggestions(text) {
+          const q = (text || "").trim().toLowerCase();
+          const candidates = [];
+          for (const b of titleBases) {
+            for (const t of titleTails) candidates.push(`${b} ${t}`);
+          }
+          const uniq = Array.from(new Set(candidates));
+          const filtered = q
+            ? uniq.filter((s) => s.toLowerCase().includes(q)).slice(0, 6)
+            : uniq.slice(0, 6);
+          return filtered;
+        }
+
+        const categoryRoot = [
+          {
+            id: "electronics",
+            name: "Электроника",
+            children: [
+              {
+                id: "phones",
+                name: "Телефоны и аксессуары",
+                children: [
+                  { id: "cases", name: "Чехлы", children: [] },
+                  { id: "glass", name: "Стекла и пленки", children: [] },
+                  { id: "chargers", name: "Зарядки и кабели", children: [] },
+                ],
+              },
+              {
+                id: "audio",
+                name: "Аудио",
+                children: [
+                  { id: "headphones", name: "Наушники", children: [] },
+                  { id: "speakers", name: "Колонки", children: [] },
+                ],
+              },
+            ],
+          },
+          {
+            id: "fashion",
+            name: "Одежда и обувь",
+            children: [
+              { id: "women", name: "Женщинам", children: [] },
+              { id: "men", name: "Мужчинам", children: [] },
+            ],
+          },
+          {
+            id: "home",
+            name: "Дом",
+            children: [
+              { id: "kitchen", name: "Кухня", children: [] },
+              { id: "decor", name: "Декор", children: [] },
+            ],
+          },
+        ];
+
+        function findNodeByPath(path) {
+          let nodes = categoryRoot;
+          let node = null;
+          for (const id of path) {
+            node = nodes.find((n) => n.id === id) || null;
+            if (!node) return null;
+            nodes = node.children || [];
+          }
+          return node;
+        }
+
+        function categoryPathNames(path) {
+          let nodes = categoryRoot;
+          const names = [];
+          for (const id of path) {
+            const node = nodes.find((n) => n.id === id);
+            if (!node) break;
+            names.push(node.name);
+            nodes = node.children || [];
+          }
+          return names;
+        }
+
+        function getChildrenForPath(path) {
+          if (!path.length) return categoryRoot;
+          const node = findNodeByPath(path);
+          return node ? node.children || [] : categoryRoot;
+        }
+
+        function flattenCategories(nodes, acc = [], path = []) {
+          for (const n of nodes) {
+            const nextPath = [...path, n.id];
+            acc.push({ path: nextPath, name: n.name, full: categoryPathNames(nextPath).join(" → ") });
+            if (n.children && n.children.length) flattenCategories(n.children, acc, nextPath);
+          }
+          return acc;
+        }
+
+        const flatCats = flattenCategories(categoryRoot);
+
+        function categorySuggestionsFromTitle(title) {
+          const t = (title || "").toLowerCase();
+          const weights = [
+            { k: "чехол", path: ["electronics", "phones", "cases"] },
+            { k: "плен", path: ["electronics", "phones", "glass"] },
+            { k: "стек", path: ["electronics", "phones", "glass"] },
+            { k: "заряд", path: ["electronics", "phones", "chargers"] },
+            { k: "кабель", path: ["electronics", "phones", "chargers"] },
+            { k: "науш", path: ["electronics", "audio", "headphones"] },
+          ];
+          const hits = [];
+          for (const w of weights) {
+            if (t.includes(w.k)) hits.push(w.path);
+          }
+          const uniq = Array.from(new Set(hits.map((p) => p.join("/")))).map((s) => s.split("/"));
+          return uniq.slice(0, 5);
+        }
+
+        function renderTitleSuggest() {
+          const list = buildTitleSuggestions(draft.title);
+          els.titleSuggest.innerHTML = list
+            .map((s) => `<button type="button" data-suggest="${encodeURIComponent(s)}">${s}</button>`)
+            .join("");
+        }
+
+        function renderCategorySuggest() {
+          const byTitle = categorySuggestionsFromTitle(draft.title).map((p) => ({
+            label: categoryPathNames(p).join(" → "),
+            path: p,
+          }));
+
+          const q = (els.categorySearch.value || "").trim().toLowerCase();
+          const bySearch = q
+            ? flatCats
+                .filter((c) => c.full.toLowerCase().includes(q))
+                .slice(0, 6)
+                .map((c) => ({ label: c.full, path: c.path }))
+            : [];
+
+          const merged = [...byTitle, ...bySearch];
+          const uniq = [];
+          const seen = new Set();
+          for (const m of merged) {
+            const key = m.path.join("/");
+            if (seen.has(key)) continue;
+            seen.add(key);
+            uniq.push(m);
+          }
+
+          els.categorySuggest.innerHTML = uniq.length
+            ? uniq
+                .slice(0, 6)
+                .map(
+                  (m) =>
+                    `<button type="button" data-catpath="${m.path.join(",")}">${m.label}</button>`
+                )
+                .join("")
+            : `<div class="hint" style="padding:12px">Нет подсказок — выбери в дереве ниже.</div>`;
+        }
+
+        function renderCategoryTree() {
+          const children = getChildrenForPath(draft.categoryPath);
+          const names = categoryPathNames(draft.categoryPath);
+          els.categoryPathHint.textContent = names.length ? `Выбрано: ${names.join(" → ")}` : "Не выбрано";
+
+          const items = [];
+          if (draft.categoryPath.length) {
+            items.push(
+              `<div class="treeItem" data-tree="up"><div>← Назад</div><div class="chev"></div></div>`
+            );
+          }
+          for (const c of children) {
+            const hasKids = c.children && c.children.length;
+            items.push(
+              `<div class="treeItem" data-tree="node" data-id="${c.id}">
+                <div>${c.name}</div>
+                <div class="chev">${hasKids ? "›" : "✓"}</div>
+              </div>`
+            );
+          }
+          els.categoryTree.innerHTML = items.join("");
+        }
+
+        function renderMedia() {
+          els.mediaGrid.innerHTML = "";
+          const list = draft.media || [];
+          const tiles = [];
+          for (let i = 0; i < list.length; i++) {
+            const m = list[i];
+            const url = m.url;
+            const badge = i === 0 ? `<div class="badge">Обложка</div>` : "";
+            if (m.type.startsWith("video/")) {
+              tiles.push(
+                `<div class="mediaTile">${badge}<video src="${url}" muted playsinline></video></div>`
+              );
+            } else {
+              tiles.push(`<div class="mediaTile">${badge}<img src="${url}" alt="" /></div>`);
+            }
+          }
+          els.mediaGrid.innerHTML = tiles.join("");
+        }
+
+        function renderAddress() {
+          const hasSaved = Boolean(draft.addressLine && draft.addressLine.trim());
+          els.addressSaved.style.display = hasSaved ? "block" : "none";
+          els.addressMap.style.display = hasSaved ? "none" : "block";
+          els.addressLine.value = draft.addressLine || "";
+          els.houseInput.value = draft.house || "";
+        }
+
+        function renderQty() {
+          els.qtyToggle.textContent = draft.qtyEnabled ? "Включено" : "Выключено";
+          els.qtyToggle.setAttribute("aria-pressed", draft.qtyEnabled ? "true" : "false");
+          els.qtyField.style.display = draft.qtyEnabled ? "block" : "none";
+          els.qtyInput.value = String(draft.qty || 1);
+        }
+
+        function renderPills(container, value) {
+          for (const b of container.querySelectorAll("button[data-value]")) {
+            b.setAttribute("aria-pressed", b.dataset.value === value ? "true" : "false");
+          }
+        }
+
+        function renderProductCard() {
+          const media0 = (draft.media || [])[0];
+          if (media0 && media0.type.startsWith("image/")) {
+            els.productMedia.innerHTML = `<img src="${media0.url}" alt="" />`;
+          } else if (media0 && media0.type.startsWith("video/")) {
+            els.productMedia.textContent = "Видео обложкой (в прототипе)";
+          } else {
+            els.productMedia.textContent = "Нет фото";
+          }
+
+          els.productTitle.textContent = draft.title?.trim() || "Без названия";
+
+          const priceText = draft.price ? `${formatRUB(draft.price)} ₽` : "— ₽";
+          els.productPrice.textContent = priceText;
+
+          const lines = [];
+          const cat = categoryPathNames(draft.categoryPath || []).join(" → ");
+          if (cat) lines.push(`Категория: ${cat}`);
+          if (draft.condition) lines.push(`Состояние: ${draft.condition === "new" ? "Новое" : "Б/у"}`);
+          if (draft.adType)
+            lines.push(
+              `Вид: ${draft.adType === "personal" ? "Продаю своё" : "Товар приобретен на продажу"}`
+            );
+          if (draft.addressLine) lines.push(`Адрес: ${draft.addressLine}`);
+          if (draft.contact)
+            lines.push(
+              `Связь: ${
+                draft.contact === "calls"
+                  ? "Только звонки"
+                  : draft.contact === "messages"
+                    ? "Только сообщения"
+                    : "Звонки и сообщения"
+              }`
+            );
+          if (draft.qtyEnabled) lines.push(`Количество: ${draft.qty || 1}`);
+          els.productMeta.innerHTML = lines.map((x) => `<div>${x}</div>`).join("");
+        }
+
+        function render() {
+          const step = draft.step || 1;
+          els.stepTitle.textContent = stepTitles[step] || "Создать объявление";
+          els.stepSubtitle.textContent = `Шаг ${step} из ${TOTAL}`;
+          els.progressBar.style.width = `${Math.round(((step - 1) / (TOTAL - 1)) * 100)}%`;
+
+          for (const s of document.querySelectorAll(".step")) {
+            s.dataset.active = s.dataset.step === String(step) ? "true" : "false";
+          }
+
+          els.prevBtn.disabled = step === 1;
+          els.nextBtn.textContent = step === TOTAL ? "Опубликовать" : "Далее";
+
+          // Sync fields
+          els.titleInput.value = draft.title || "";
+          els.descInput.value = draft.description || "";
+          els.priceInput.value = draft.price || "";
+          els.categorySearch.value = els.categorySearch.value || "";
+
+          renderTitleSuggest();
+          renderCategorySuggest();
+          renderCategoryTree();
+          renderMedia();
+          renderAddress();
+          renderQty();
+          renderPills(els.conditionPills, draft.condition);
+          renderPills(els.adTypePills, draft.adType);
+          renderPills(els.contactPills, draft.contact);
+          renderProductCard();
+        }
+
+        // Навигация
+        els.prevBtn.addEventListener("click", () => setStep((draft.step || 1) - 1));
+        els.nextBtn.addEventListener("click", () => {
+          if ((draft.step || 1) >= TOTAL) {
+            // demo publish: keep draft, just go home
+            window.location.href = "./index.html";
+            return;
+          }
+          setStep((draft.step || 1) + 1);
+        });
+
+        els.backHome.addEventListener("click", () => {
+          window.location.href = "./index.html";
+        });
+
+        els.resetDraft.addEventListener("click", () => reset());
+
+        // Step 1 media
+        els.mediaInput.addEventListener("change", () => {
+          cleanupMediaUrls();
+          const files = Array.from(els.mediaInput.files || []);
+          const mapped = files.slice(0, 9).map((f) => {
+            const url = URL.createObjectURL(f);
+            mediaObjectUrls.push(url);
+            return { name: f.name, type: f.type || "image/*", url };
+          });
+          saveDraft({ media: mapped });
+        });
+
+        // Step 2 title
+        els.titleInput.addEventListener("input", () => {
+          saveDraft({ title: els.titleInput.value });
+        });
+
+        els.titleSuggest.addEventListener("click", (e) => {
+          const btn = e.target.closest("button[data-suggest]");
+          if (!btn) return;
+          const val = decodeURIComponent(btn.dataset.suggest);
+          saveDraft({ title: val });
+        });
+
+        // Step 3 category
+        els.categorySearch.addEventListener("input", () => renderCategorySuggest());
+
+        els.categorySuggest.addEventListener("click", (e) => {
+          const btn = e.target.closest("button[data-catpath]");
+          if (!btn) return;
+          const path = btn.dataset.catpath.split(",").filter(Boolean);
+          saveDraft({ categoryPath: path });
+        });
+
+        els.categoryTree.addEventListener("click", (e) => {
+          const item = e.target.closest(".treeItem");
+          if (!item) return;
+          if (item.dataset.tree === "up") {
+            saveDraft({ categoryPath: draft.categoryPath.slice(0, -1) });
+            return;
+          }
+          if (item.dataset.tree === "node") {
+            const id = item.dataset.id;
+            const nextPath = [...draft.categoryPath, id];
+            const node = findNodeByPath(nextPath);
+            if (node && node.children && node.children.length) {
+              saveDraft({ categoryPath: nextPath });
+            } else {
+              saveDraft({ categoryPath: nextPath });
+            }
+          }
+        });
+
+        // Step 4 condition
+        els.conditionPills.addEventListener("click", (e) => {
+          const b = e.target.closest("button[data-value]");
+          if (!b) return;
+          pickPill(els.conditionPills, b.dataset.value, "condition");
+        });
+
+        // Step 5 ad type
+        els.adTypePills.addEventListener("click", (e) => {
+          const b = e.target.closest("button[data-value]");
+          if (!b) return;
+          pickPill(els.adTypePills, b.dataset.value, "adType");
+        });
+
+        // Step 6 description
+        els.descInput.addEventListener("input", () => saveDraft({ description: els.descInput.value }));
+
+        // Step 7 address
+        els.houseInput.addEventListener("input", () => saveDraft({ house: els.houseInput.value }));
+        els.addressLine.addEventListener("input", () => saveDraft({ addressLine: els.addressLine.value }));
+        els.editAddress.addEventListener("click", () => saveDraft({ addressLine: "" }));
+
+        // When leaving step 7 with house entered, create addressLine if empty
+        function ensureAddressFromHouse() {
+          if (draft.addressLine && draft.addressLine.trim()) return;
+          const h = (draft.house || "").trim();
+          if (!h) return;
+          saveDraft({ addressLine: `Дом ${h}` });
+        }
+
+        // Step 8 price/qty
+        els.priceInput.addEventListener("input", () => saveDraft({ price: els.priceInput.value }));
+        els.qtyToggle.addEventListener("click", () => {
+          const next = !draft.qtyEnabled;
+          saveDraft({ qtyEnabled: next, qty: next ? Math.max(1, Number(draft.qty || 1)) : 1 });
+        });
+        els.qtyMinus.addEventListener("click", () => {
+          const q = Math.max(1, Number(draft.qty || 1) - 1);
+          saveDraft({ qty: q });
+        });
+        els.qtyPlus.addEventListener("click", () => {
+          const q = Math.max(1, Number(draft.qty || 1) + 1);
+          saveDraft({ qty: q });
+        });
+        els.qtyInput.addEventListener("input", () => {
+          const q = Math.max(1, Number(String(els.qtyInput.value).replace(/[^\d]/g, "")) || 1);
+          saveDraft({ qty: q });
+        });
+
+        // Step 9 contact
+        els.contactPills.addEventListener("click", (e) => {
+          const b = e.target.closest("button[data-value]");
+          if (!b) return;
+          pickPill(els.contactPills, b.dataset.value, "contact");
+        });
+
+        // step hook: ensure address save when moving forward from step 7
+        const originalSetStep = setStep;
+        setStep = function (step) {
+          if ((draft.step || 1) === 7 && step > 7) ensureAddressFromHouse();
+          originalSetStep(step);
+        };
+
+        // Initial
+        render();
+      })();
+    </script>
+  </body>
+</html>
+
