@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="free-osm-map-v4" />
+    <meta name="prototype-build" content="free-osm-map-v8" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "free-osm-map-v4";
+        var NEED = "free-osm-map-v8";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -421,17 +421,64 @@
       }
 
       .step[data-step="4"] .pill[aria-pressed="false"],
-      .step[data-step="5"] .pill[aria-pressed="false"],
-      .step[data-step="8"] .pill[aria-pressed="false"],
-      .step[data-step="9"] .pill[aria-pressed="false"] {
+      .step[data-step="5"] .pill[aria-pressed="false"] {
         border: 0;
         background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
       }
 
+      .step[data-step="9"] .radioFieldset {
+        border: 0;
+        margin: 0;
+        padding: 0;
+        min-width: 0;
+      }
+
+      .radioList {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .radioItem {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: var(--radiusMd, 10px);
+        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
+        cursor: pointer;
+        font: 400 16px/1.35 var(--font);
+        color: var(--text);
+        transition: box-shadow 0.15s ease, background 0.15s ease;
+      }
+
+      .radioItem:has(input:focus-visible) {
+        outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+        outline-offset: 2px;
+      }
+
+      .radioItem:has(input:checked) {
+        background: color-mix(in srgb, var(--primary) 10%, transparent);
+        box-shadow: inset 0 0 0 2px var(--primary, #005bff);
+      }
+
+      .radioItem input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        margin: 2px 0 0;
+        flex-shrink: 0;
+        accent-color: var(--primary, #005bff);
+        cursor: pointer;
+      }
+
+      .radioItemText {
+        flex: 1;
+        min-width: 0;
+        padding-top: 1px;
+      }
+
       .step[data-step="4"] .pill[aria-pressed="true"],
-      .step[data-step="5"] .pill[aria-pressed="true"],
-      .step[data-step="8"] .pill[aria-pressed="true"],
-      .step[data-step="9"] .pill[aria-pressed="true"] {
+      .step[data-step="5"] .pill[aria-pressed="true"] {
         border: 0;
         background: #000;
         color: #fff;
@@ -801,6 +848,69 @@
         cursor: not-allowed;
       }
 
+      .toggleRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 44px;
+      }
+
+      .toggleLabel {
+        font-size: 14px;
+        font-weight: 650;
+        line-height: 1.35;
+        color: var(--text);
+        flex: 1;
+        min-width: 0;
+      }
+
+      .toggleSwitch {
+        appearance: none;
+        border: 0;
+        padding: 4px;
+        margin: 0;
+        background: transparent;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      .toggleSwitch:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+        outline-offset: 2px;
+        border-radius: 999px;
+      }
+
+      .toggleSwitchTrack {
+        display: block;
+        width: 50px;
+        height: 30px;
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.18);
+        position: relative;
+        transition: background 0.2s ease;
+      }
+
+      .toggleSwitch[aria-checked="true"] .toggleSwitchTrack {
+        background: var(--primary, #005bff);
+      }
+
+      .toggleSwitchThumb {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease;
+      }
+
+      .toggleSwitch[aria-checked="true"] .toggleSwitchThumb {
+        transform: translateX(20px);
+      }
+
       .qtyRow {
         display: grid;
         grid-template-columns: 1fr auto auto;
@@ -1018,12 +1128,8 @@
               </div>
               <div id="leafletMap" class="leafletMap" aria-label="Интерактивная карта"></div>
               <p class="mapAttr">
-                Карта © OpenStreetMap · подсказки адресов — Photon (данные OSM, без ключа API)
+                Карта © OpenStreetMap · адрес и подсказки — Nominatim (OSM, открытый API) и Photon
               </p>
-              <div class="field" style="margin-top: 12px">
-                <div class="label">Дом / квартира</div>
-                <input class="input" id="houseInput" placeholder="Например: 12к1" inputmode="text" autocomplete="address-line2" />
-              </div>
             </div>
           </div>
         </section>
@@ -1042,9 +1148,20 @@
             </div>
 
             <div class="field">
-              <div class="hint">Несколько штук в наличии</div>
-              <div class="pillRow" id="qtyToggleRow">
-                <button class="pill" id="qtyToggle" type="button" aria-pressed="false">Выключено</button>
+              <div class="toggleRow">
+                <span class="toggleLabel" id="qtyToggleLabel">Несколько штук в наличии</span>
+                <button
+                  type="button"
+                  class="toggleSwitch"
+                  id="qtyToggle"
+                  role="switch"
+                  aria-checked="false"
+                  aria-labelledby="qtyToggleLabel"
+                >
+                  <span class="toggleSwitchTrack" aria-hidden="true">
+                    <span class="toggleSwitchThumb"></span>
+                  </span>
+                </button>
               </div>
             </div>
 
@@ -1067,15 +1184,22 @@
         <!-- 9. Способ связи -->
         <section class="step" data-step="9">
           <div class="card">
-            <div class="pillRow" id="contactPills">
-              <button class="pill" type="button" data-value="calls" aria-pressed="false">Только звонки</button>
-              <button class="pill" type="button" data-value="messages" aria-pressed="false">
-                Только сообщения
-              </button>
-              <button class="pill" type="button" data-value="both" aria-pressed="false">
-                Звонки и сообщения
-              </button>
-            </div>
+            <fieldset class="radioFieldset" id="contactPills" aria-label="Способ связи">
+              <div class="radioList">
+                <label class="radioItem">
+                  <input type="radio" name="contact" value="calls" />
+                  <span class="radioItemText">Только звонки</span>
+                </label>
+                <label class="radioItem">
+                  <input type="radio" name="contact" value="messages" />
+                  <span class="radioItemText">Только сообщения</span>
+                </label>
+                <label class="radioItem">
+                  <input type="radio" name="contact" value="both" />
+                  <span class="radioItemText">Звонки и сообщения</span>
+                </label>
+              </div>
+            </fieldset>
           </div>
         </section>
 
@@ -1136,7 +1260,6 @@
           addressSearchInput: document.getElementById("addressSearchInput"),
           addressSuggest: document.getElementById("addressSuggest"),
           leafletMap: document.getElementById("leafletMap"),
-          houseInput: document.getElementById("houseInput"),
           editAddress: document.getElementById("editAddress"),
 
           priceInput: document.getElementById("priceInput"),
@@ -1180,7 +1303,6 @@
           mapLat: null,
           mapLng: null,
           mapLabel: "",
-          house: "",
           price: "",
           qtyEnabled: false,
           qty: 1,
@@ -1204,6 +1326,8 @@
         let leafletMap = null;
         let leafletMarker = null;
         let addressSuggestTimer = null;
+        let addressSuggestAbort = null;
+        let reverseGeocodeAbort = null;
 
         function loadDraft() {
           try {
@@ -1290,10 +1414,9 @@
           draft.description = els.descInput.value;
           draft.price = els.priceInput.value;
           draft.addressLine = els.addressLine.value;
-          draft.house = els.houseInput.value;
           const q = Number.parseInt(String(els.qtyInput.value || "1"), 10);
           draft.qty = Number.isFinite(q) ? Math.max(1, q) : 1;
-          draft.qtyEnabled = els.qtyToggle.getAttribute("aria-pressed") === "true";
+          draft.qtyEnabled = els.qtyToggle.getAttribute("aria-checked") === "true";
         }
 
         function saveDraft(patch) {
@@ -4760,6 +4883,60 @@
           return "";
         }
 
+        const NOMINATIM = "https://nominatim.openstreetmap.org";
+
+        function labelFromNominatimResult(item) {
+          if (!item) return "";
+          const d = item.display_name && String(item.display_name).trim();
+          if (d) return d;
+          const a = item.address || {};
+          const line1 = [a.house_number, a.road || a.pedestrian || a.path].filter(Boolean).join(" ");
+          const place =
+            a.city || a.town || a.village || a.hamlet || a.municipality || a.state_district || "";
+          const parts = [line1, place, a.postcode, a.country].filter(Boolean);
+          return parts.join(", ") || "";
+        }
+
+        async function searchNominatim(q, signal) {
+          const url = `${NOMINATIM}/search?q=${encodeURIComponent(
+            q
+          )}&format=json&addressdetails=1&limit=8&accept-language=ru`;
+          const res = await fetch(url, {
+            signal,
+            headers: { Accept: "application/json", "Accept-Language": "ru" },
+          });
+          if (!res.ok) throw new Error("nominatim");
+          return res.json();
+        }
+
+        async function fetchAddressSuggestions(q, signal) {
+          try {
+            const arr = await searchNominatim(q, signal);
+            if (!Array.isArray(arr) || !arr.length) return [];
+            return arr
+              .map((item) => {
+                const lat = parseFloat(item.lat);
+                const lon = parseFloat(item.lon);
+                const label = labelFromNominatimResult(item);
+                return { lat, lon, label };
+              })
+              .filter((x) => Number.isFinite(x.lat) && Number.isFinite(x.lon) && x.label);
+          } catch (e) {
+            if (e && e.name === "AbortError") throw e;
+            return [];
+          }
+        }
+
+        function photonFeaturesToSuggestions(feats) {
+          return (feats || [])
+            .map((f) => {
+              const [lon, lat] = f.geometry.coordinates;
+              const label = labelFromPhotonFeature(f);
+              return { lat, lon, label };
+            })
+            .filter((x) => Number.isFinite(x.lat) && Number.isFinite(x.lon) && x.label);
+        }
+
         function hideAddressSuggest() {
           if (!els.addressSuggest) return;
           els.addressSuggest.hidden = true;
@@ -4767,23 +4944,46 @@
           if (els.addressSearchInput) els.addressSearchInput.setAttribute("aria-expanded", "false");
         }
 
-        async function reverseGeocodePhoton(lat, lng) {
+        async function reverseGeocodeMap(lat, lng) {
           const fallback = formatCoordsLatLng(lat, lng);
           saveDraft({ mapLat: lat, mapLng: lng, mapLabel: fallback });
           if (els.addressSearchInput) els.addressSearchInput.value = fallback;
+          if (reverseGeocodeAbort) reverseGeocodeAbort.abort();
+          reverseGeocodeAbort = new AbortController();
+          const signal = reverseGeocodeAbort.signal;
           try {
-            const res = await fetch(
-              `https://photon.komoot.io/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(
-                lng
-              )}&lang=ru`
-            );
-            if (!res.ok) return;
+            const url = `${NOMINATIM}/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(
+              lng
+            )}&format=json&addressdetails=1&accept-language=ru`;
+            const res = await fetch(url, {
+              signal,
+              headers: { Accept: "application/json", "Accept-Language": "ru" },
+            });
+            if (!res.ok) throw new Error("nominatim");
             const js = await res.json();
-            const label = bestPhotonLabelFromFeatures(js.features) || fallback;
+            if (signal.aborted) return;
+            const label =
+              (js && js.display_name && String(js.display_name).trim()) ||
+              labelFromNominatimResult(js) ||
+              fallback;
             saveDraft({ mapLat: lat, mapLng: lng, mapLabel: label });
             if (els.addressSearchInput) els.addressSearchInput.value = label;
-          } catch {
-            /* координаты уже в черновике и в инпуте */
+          } catch (e) {
+            if (e && e.name === "AbortError") return;
+            try {
+              const res = await fetch(
+                `https://photon.komoot.io/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(
+                  lng
+                )}&lang=ru`
+              );
+              if (!res.ok) return;
+              const js = await res.json();
+              const label = bestPhotonLabelFromFeatures(js.features) || fallback;
+              saveDraft({ mapLat: lat, mapLng: lng, mapLabel: label });
+              if (els.addressSearchInput) els.addressSearchInput.value = label;
+            } catch {
+              /* остаются координаты в черновике и в инпуте */
+            }
           }
         }
 
@@ -4824,11 +5024,11 @@
             leafletMarker = L.marker([centerLat, centerLng], { draggable: true }).addTo(leafletMap);
             leafletMarker.on("dragend", (e) => {
               const ll = e.target.getLatLng();
-              reverseGeocodePhoton(ll.lat, ll.lng);
+              reverseGeocodeMap(ll.lat, ll.lng);
             });
             leafletMap.on("click", (e) => {
               leafletMarker.setLatLng(e.latlng);
-              reverseGeocodePhoton(e.latlng.lat, e.latlng.lng);
+              reverseGeocodeMap(e.latlng.lat, e.latlng.lng);
             });
           } else {
             leafletMap.invalidateSize();
@@ -4840,15 +5040,13 @@
           els.addressSaved.style.display = hasSaved ? "block" : "none";
           els.addressMap.style.display = hasSaved ? "none" : "block";
           els.addressLine.value = draft.addressLine || "";
-          els.houseInput.value = draft.house || "";
           if (els.addressSearchInput) {
             els.addressSearchInput.value = draft.mapLabel || "";
           }
         }
 
         function renderQty() {
-          els.qtyToggle.textContent = draft.qtyEnabled ? "Включено" : "Выключено";
-          els.qtyToggle.setAttribute("aria-pressed", draft.qtyEnabled ? "true" : "false");
+          els.qtyToggle.setAttribute("aria-checked", draft.qtyEnabled ? "true" : "false");
           els.qtyField.style.display = draft.qtyEnabled ? "block" : "none";
           els.qtyInput.value = String(draft.qty || 1);
         }
@@ -4856,6 +5054,12 @@
         function renderPills(container, value) {
           for (const b of container.querySelectorAll("button[data-value]")) {
             b.setAttribute("aria-pressed", b.dataset.value === value ? "true" : "false");
+          }
+        }
+
+        function renderContactRadios(value) {
+          for (const input of els.contactPills.querySelectorAll('input[name="contact"]')) {
+            input.checked = value != null && value !== "" && input.value === value;
           }
         }
 
@@ -4931,7 +5135,7 @@
           renderQty();
           renderPills(els.conditionPills, draft.condition);
           renderPills(els.adTypePills, draft.adType);
-          renderPills(els.contactPills, draft.contact);
+          renderContactRadios(draft.contact);
           renderProductCard();
 
           const fp = document.getElementById("footerProto");
@@ -5159,7 +5363,6 @@
         });
 
         // Step 7 address
-        els.houseInput.addEventListener("input", () => saveDraft({ house: els.houseInput.value }));
         els.addressLine.addEventListener("input", () => saveDraft({ addressLine: els.addressLine.value }));
         els.editAddress.addEventListener("click", () => {
           const prev = (draft.addressLine || "").trim();
@@ -5168,6 +5371,9 @@
 
         els.addressSearchInput.addEventListener("input", () => {
           clearTimeout(addressSuggestTimer);
+          if (addressSuggestAbort) addressSuggestAbort.abort();
+          addressSuggestAbort = new AbortController();
+          const signal = addressSuggestAbort.signal;
           saveDraft({ mapLabel: els.addressSearchInput.value });
           const q = els.addressSearchInput.value.trim();
           if (q.length < 2) {
@@ -5176,27 +5382,33 @@
           }
           addressSuggestTimer = setTimeout(async () => {
             try {
-              const js = await searchPhoton(q);
-              const feats = js.features || [];
-              if (!feats.length) {
+              let items = await fetchAddressSuggestions(q, signal);
+              if (signal.aborted) return;
+              if (!items.length) {
+                const js = await searchPhoton(q);
+                if (signal.aborted) return;
+                items = photonFeaturesToSuggestions(js.features || []);
+              }
+              if (!items.length) {
                 hideAddressSuggest();
                 return;
               }
+              if (signal.aborted) return;
               els.addressSuggest.hidden = false;
               els.addressSearchInput.setAttribute("aria-expanded", "true");
-              els.addressSuggest.innerHTML = feats
-                .map((f) => {
-                  const [lon, lat] = f.geometry.coordinates;
-                  const label = labelFromPhotonFeature(f);
-                  return `<button type="button" role="option" data-photon-lat="${lat}" data-photon-lon="${lon}" data-photon-label="${encodeURIComponent(
-                    label
-                  )}">${escapeHtml(label)}</button>`;
-                })
+              els.addressSuggest.innerHTML = items
+                .map(
+                  (it) =>
+                    `<button type="button" role="option" data-addr-lat="${it.lat}" data-addr-lon="${it.lon}" data-addr-label="${encodeURIComponent(
+                      it.label
+                    )}">${escapeHtml(it.label)}</button>`
+                )
                 .join("");
-            } catch {
+            } catch (e) {
+              if (e && e.name === "AbortError") return;
               hideAddressSuggest();
             }
-          }, 380);
+          }, 450);
         });
 
         els.addressSearchInput.addEventListener("blur", () => {
@@ -5204,15 +5416,15 @@
         });
 
         els.addressSuggest.addEventListener("pointerdown", (e) => {
-          if (e.target.closest("button[data-photon-lat]")) e.preventDefault();
+          if (e.target.closest("button[data-addr-lat]")) e.preventDefault();
         });
 
         els.addressSuggest.addEventListener("click", (e) => {
-          const btn = e.target.closest("button[data-photon-lat]");
+          const btn = e.target.closest("button[data-addr-lat]");
           if (!btn) return;
-          const lat = Number(btn.dataset.photonLat);
-          const lon = Number(btn.dataset.photonLon);
-          const label = decodeURIComponent(btn.getAttribute("data-photon-label") || "");
+          const lat = Number(btn.dataset.addrLat);
+          const lon = Number(btn.dataset.addrLon);
+          const label = decodeURIComponent(btn.getAttribute("data-addr-label") || "");
           if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
           applyMapPick(lat, lon, label);
           hideAddressSuggest();
@@ -5224,13 +5436,7 @@
             (draft.mapLabel || "").trim() ||
             (els.addressSearchInput && els.addressSearchInput.value.trim()) ||
             "";
-          if (label) {
-            const h = (draft.house || "").trim();
-            saveDraft({ addressLine: h ? `${label}, ${h}` : label, mapLabel: "" });
-            return;
-          }
-          const h = (draft.house || "").trim();
-          if (h) saveDraft({ addressLine: `Дом ${h}` });
+          if (label) saveDraft({ addressLine: label, mapLabel: "" });
         }
 
         // Step 8 price/qty
@@ -5253,10 +5459,10 @@
         });
 
         // Step 9 contact
-        els.contactPills.addEventListener("click", (e) => {
-          const b = e.target.closest("button[data-value]");
-          if (!b) return;
-          pickPill(els.contactPills, b.dataset.value, "contact");
+        els.contactPills.addEventListener("change", (e) => {
+          const t = e.target;
+          if (t.name !== "contact" || t.type !== "radio") return;
+          saveDraft({ contact: t.value });
         });
 
         // step hook: ensure address save when moving forward from step 7
