@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="hh-hygiene-ozon-v1" />
+    <meta name="prototype-build" content="map-photon-v1" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "hh-hygiene-ozon-v1";
+        var NEED = "map-photon-v1";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -32,6 +32,11 @@
     <link
       rel="stylesheet"
       href="https://st.ozone.ru/s3/shared-deps/%40bx-fe/ui-kit/dist/common/index.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin="anonymous"
     />
 
     <style>
@@ -314,9 +319,18 @@
       }
 
       .pill[aria-pressed="true"] {
-        border-color: color-mix(in srgb, var(--primary) 50%, transparent);
-        background: color-mix(in srgb, var(--primary) 12%, transparent);
-        color: var(--primary);
+        border-color: #000;
+        background: #000;
+        color: #fff;
+      }
+
+      .pill:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+        outline-offset: 2px;
+      }
+
+      .pill[aria-pressed="true"]:focus-visible {
+        outline-color: #fff;
       }
 
       /* Шаги 2–10: без рамки карточки; поля как на шаге 2 (серый фон, без обводки). */
@@ -362,6 +376,26 @@
         outline-offset: 2px;
       }
 
+      .descGenRow {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .descGenRow .btnSecondary {
+        width: auto;
+        align-self: stretch;
+      }
+
+      .descGenHint {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.35;
+        color: rgba(0, 0, 0, 0.45);
+      }
+
       .step[data-step="3"] .tree {
         background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
         border: 0;
@@ -391,10 +425,10 @@
         padding: 0 2px;
       }
 
-      .step[data-step="4"] .pill,
-      .step[data-step="5"] .pill,
-      .step[data-step="8"] .pill,
-      .step[data-step="9"] .pill {
+      .step[data-step="4"] .pill[aria-pressed="false"],
+      .step[data-step="5"] .pill[aria-pressed="false"],
+      .step[data-step="8"] .pill[aria-pressed="false"],
+      .step[data-step="9"] .pill[aria-pressed="false"] {
         border: 0;
         background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
       }
@@ -404,11 +438,74 @@
       .step[data-step="8"] .pill[aria-pressed="true"],
       .step[data-step="9"] .pill[aria-pressed="true"] {
         border: 0;
+        background: #000;
+        color: #fff;
       }
 
-      .step[data-step="7"] .mapMock {
+      .leafletMap {
+        height: 260px;
+        width: 100%;
+        min-width: 0;
+        border-radius: 14px;
+        border: 1px solid var(--stroke);
+        overflow: hidden;
+        z-index: 0;
+      }
+
+      .leafletMap .leaflet-control-container a {
+        color: inherit;
+      }
+
+      .mapSearchWrap {
+        position: relative;
+      }
+
+      .addressSuggest {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        margin-top: 4px;
+        z-index: 20;
+        max-height: 220px;
+        overflow: auto;
+        border-radius: 12px;
+        border: 1px solid var(--stroke);
+        background: var(--surface);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      }
+
+      .addressSuggest button {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 10px 12px;
         border: 0;
-        box-shadow: none;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        background: transparent;
+        font: 400 14px/1.35 var(--font);
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      .addressSuggest button:last-child {
+        border-bottom: 0;
+      }
+
+      .addressSuggest button:hover,
+      .addressSuggest button:focus-visible {
+        background: rgba(0, 91, 255, 0.06);
+      }
+
+      .mapAttr {
+        margin: 8px 0 0;
+        font-size: 11px;
+        line-height: 1.35;
+        color: rgba(0, 0, 0, 0.45);
+      }
+
+      .addressMapActions {
+        margin-top: 12px;
       }
 
       /* Подсказки названия — теги (paragraph, серый фон, чёрный текст). */
@@ -619,6 +716,47 @@
         text-transform: uppercase;
       }
 
+      .mediaGrid.mediaGridCols3 > .mediaTile.mediaTileMedia {
+        cursor: grab;
+      }
+
+      .mediaGrid.mediaGridCols3 > .mediaTile.mediaTileMedia:active {
+        cursor: grabbing;
+      }
+
+      .mediaGrid.mediaGridCols3 > .mediaTile.mediaTileMedia.mediaTile--dragging {
+        opacity: 0.55;
+      }
+
+      .mediaGrid.mediaGridCols3 > .mediaTile.mediaTileMedia.mediaTile--dropTarget {
+        outline: 2px solid var(--primary);
+        outline-offset: -2px;
+        border-radius: 12px;
+      }
+
+      .mediaCoverBtn {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 3;
+        max-width: calc(100% - 16px);
+        font: 600 11px/1.2 var(--font);
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 0;
+        background: rgba(255, 255, 255, 0.95);
+        color: var(--text);
+        cursor: pointer;
+        white-space: nowrap;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+      }
+
+      .mediaCoverBtn:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+        outline-offset: 1px;
+      }
+
       .footer {
         padding: 12px 16px calc(env(safe-area-inset-bottom) + 12px);
         border-top: 1px solid var(--stroke);
@@ -689,35 +827,6 @@
         width: 100%;
         min-width: 0;
         box-sizing: border-box;
-      }
-
-      .mapMock {
-        height: 240px;
-        border-radius: 14px;
-        border: 1px solid var(--stroke);
-        background: linear-gradient(135deg, rgba(0, 91, 255, 0.08), rgba(0, 0, 0, 0.03));
-        position: relative;
-        overflow: hidden;
-      }
-
-      .mapMock .pin {
-        position: absolute;
-        left: 50%;
-        top: 52%;
-        transform: translate(-50%, -100%);
-        width: 22px;
-        height: 22px;
-        border-radius: 999px 999px 999px 0;
-        background: var(--primary);
-        rotate: -45deg;
-      }
-
-      .mapMock .pin::after {
-        content: "";
-        position: absolute;
-        inset: 6px;
-        border-radius: 999px;
-        background: #fff;
       }
 
       .productCard {
@@ -809,7 +918,9 @@
         <!-- 1. Внешний вид -->
         <section class="step" data-step="1">
           <div class="card">
-            <div class="hint">Добавь фото и/или видео. Первое фото будет обложкой.</div>
+            <div class="hint">
+              Добавь фото и/или видео. Первое в сетке — обложка: перетащи плитку на нужное место или нажми «На обложку».
+            </div>
 
             <input id="mediaInput" type="file" accept="image/*,video/*" multiple hidden />
 
@@ -821,8 +932,13 @@
         <section class="step" data-step="2">
           <div class="card">
             <div class="field">
-              <div class="label">Как называется товар?</div>
-              <input class="input" id="titleInput" placeholder="" autocomplete="off" />
+              <input
+                class="input"
+                id="titleInput"
+                placeholder=""
+                autocomplete="off"
+                aria-label="Название товара"
+              />
             </div>
             <div class="titleTagList" id="titleSuggest"></div>
           </div>
@@ -871,6 +987,14 @@
                 aria-label="Описание товара"
               ></textarea>
             </div>
+            <div class="descGenRow">
+              <button type="button" class="btn btnSecondary" id="descGenerateBtn">
+                Сгенерировать описание
+              </button>
+              <p class="descGenHint" id="descGenHint">
+                Черновик собирается из названия, категории и состояния (локальный AI-помощник в браузере).
+              </p>
+            </div>
           </div>
         </section>
 
@@ -886,12 +1010,29 @@
             </div>
 
             <div id="addressMap">
-              <div class="mapMock" aria-label="Карта выбора адреса">
-                <div class="pin" aria-hidden="true"></div>
+              <div class="field mapSearchWrap">
+                <div class="label">Поиск адреса</div>
+                <input
+                  class="input"
+                  id="addressSearchInput"
+                  type="search"
+                  placeholder="Город, улица, дом"
+                  autocomplete="off"
+                  spellcheck="false"
+                  aria-autocomplete="list"
+                  aria-controls="addressSuggest"
+                  aria-expanded="false"
+                />
+                <div id="addressSuggest" class="addressSuggest" role="listbox" hidden></div>
               </div>
+              <div id="leafletMap" class="leafletMap" aria-label="Интерактивная карта"></div>
+              <p class="mapAttr">Карта © OpenStreetMap · подсказки адресов — Photon (данные OpenStreetMap)</p>
               <div class="field" style="margin-top: 12px">
-                <div class="label">Дом</div>
+                <div class="label">Дом / квартира</div>
                 <input class="input" id="houseInput" placeholder="Например: 12к1" inputmode="text" autocomplete="address-line2" />
+              </div>
+              <div class="addressMapActions">
+                <button type="button" class="btn btnSecondary" id="addressSaveMapBtn">Сохранить адрес</button>
               </div>
             </div>
           </div>
@@ -971,6 +1112,7 @@
       </footer>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
     <script>
       (function () {
         const DRAFT_KEY = "ozon_adv_create_ad_draft_v1";
@@ -996,10 +1138,15 @@
           conditionPills: document.getElementById("conditionPills"),
           adTypePills: document.getElementById("adTypePills"),
           descInput: document.getElementById("descInput"),
+          descGenerateBtn: document.getElementById("descGenerateBtn"),
 
           addressSaved: document.getElementById("addressSaved"),
           addressMap: document.getElementById("addressMap"),
           addressLine: document.getElementById("addressLine"),
+          addressSearchInput: document.getElementById("addressSearchInput"),
+          addressSuggest: document.getElementById("addressSuggest"),
+          addressSaveMapBtn: document.getElementById("addressSaveMapBtn"),
+          leafletMap: document.getElementById("leafletMap"),
           houseInput: document.getElementById("houseInput"),
           editAddress: document.getElementById("editAddress"),
 
@@ -1041,6 +1188,9 @@
           adType: "",
           description: "",
           addressLine: "",
+          mapLat: null,
+          mapLng: null,
+          mapLabel: "",
           house: "",
           price: "",
           qtyEnabled: false,
@@ -1062,6 +1212,9 @@
 
         let draft;
         let mediaObjectUrls = [];
+        let leafletMap = null;
+        let leafletMarker = null;
+        let addressSuggestTimer = null;
 
         function loadDraft() {
           try {
@@ -4360,6 +4513,99 @@
           return names;
         }
 
+        function hashSeed(str) {
+          let h = 2166136261;
+          for (let i = 0; i < str.length; i++) {
+            h ^= str.charCodeAt(i);
+            h = Math.imul(h, 16777619);
+          }
+          return h >>> 0;
+        }
+
+        function pickAt(seed, arr) {
+          return arr[seed % arr.length];
+        }
+
+        function nextSeed(seed) {
+          return (Math.imul(seed, 1103515245) + 12345) >>> 0;
+        }
+
+        /**
+         * Простой генератор описания в браузере: шаблоны + детерминированный выбор по данным черновика.
+         * Без ключей и сервера; при необходимости замените тело на fetch к вашему API.
+         */
+        async function simpleAiGenerateDescription(d) {
+          await new Promise((r) => setTimeout(r, 300 + Math.floor(Math.random() * 280)));
+          const title = (d.title || "").trim() || "Товар";
+          const cat = categoryPathNames(d.categoryPath || []);
+          const catLine = cat.length ? cat.join(" → ") : "";
+          const cond = d.condition === "new" ? "new" : d.condition === "used" ? "used" : "";
+          const adT =
+            d.adType === "personal" ? "Продаю своё" : d.adType === "resell" ? "Товар приобретён для перепродажи" : "";
+
+          let seed = hashSeed(title + "|" + catLine + "|" + cond + "|" + (adT || ""));
+
+          const intros = [
+            `Продаю ${title}.`,
+            `В продаже ${title}.`,
+            `Предлагаю ${title}.`,
+            `Объявление о продаже: ${title}.`,
+          ];
+          const catBlock = catLine
+            ? [
+                `Категория: ${catLine}.`,
+                `Раздел «${catLine}».`,
+                `Товар подходит в категорию: ${catLine}.`,
+              ]
+            : [`Категорию можно уточнить у продавца.`];
+
+          const stateLines =
+            cond === "new"
+              ? [
+                  "Состояние: новое, без следов использования.",
+                  "Новый товар, не использовался.",
+                ]
+              : cond === "used"
+                ? [
+                    "Состояние: б/у, реальное состояние на фото.",
+                    "Б/у, бережное использование — смотрите снимки.",
+                  ]
+                : [
+                    "Состояние уточняйте по фото и в переписке.",
+                    "Состояние можно обсудить в сообщениях.",
+                  ];
+
+          const extras = [
+            "Задавайте вопросы в чате — отвечу по возможности быстро.",
+            "Готов обсудить детали и передачу удобным способом.",
+            "Фото в объявлении соответствуют товару.",
+            "Передача в разумные сроки, договорённость по месту.",
+          ];
+          const outro = [
+            "Пишите, если нужны дополнительные фото или замеры.",
+            "Если нужна доставка или самовывоз — обсудим в чате.",
+          ];
+
+          const parts = [];
+          parts.push(pickAt(seed, intros));
+          seed = nextSeed(seed);
+          parts.push(pickAt(seed, catBlock));
+          seed = nextSeed(seed);
+          parts.push(pickAt(seed, stateLines));
+          seed = nextSeed(seed);
+          if (adT) {
+            parts.push(adT + ".");
+            seed = nextSeed(seed);
+          }
+          if (seed % 3 !== 0) {
+            parts.push(pickAt(seed, extras));
+            seed = nextSeed(seed);
+          }
+          parts.push(pickAt(seed, outro));
+
+          return parts.join("\n\n");
+        }
+
         /**
          * Путь в черновике может указывать на лист; на экране показываем детей родителя.
          * Возвращает viewPath — префикс для сборки nextPath при клике (родитель показанного списка).
@@ -4437,6 +4683,15 @@
             : "Не выбрано";
         }
 
+        function reorderMedia(from, to) {
+          const list = [...(draft.media || [])];
+          if (from < 0 || from >= list.length || to < 0 || to >= list.length || from === to) return;
+          const [item] = list.splice(from, 1);
+          list.splice(to, 0, item);
+          saveDraft({ media: list });
+          refreshDraftCoverThumbnail();
+        }
+
         function renderMedia() {
           els.mediaGrid.innerHTML = "";
           const list = draft.media || [];
@@ -4461,12 +4716,17 @@
             const url = m.url;
             const isVideo = (m.type || "").startsWith("video/");
             const delLabel = isVideo ? "Удалить видео" : "Удалить фото";
-            const removeBtn = `<button type="button" class="mediaRemove" data-media-index="${i}" aria-label="${delLabel}">${removeSvg}</button>`;
+            const removeBtn = `<button type="button" class="mediaRemove" draggable="false" data-media-index="${i}" aria-label="${delLabel}">${removeSvg}</button>`;
             const badge = i === 0 ? `<div class="badge" role="status">Обложка</div>` : "";
+            const coverBtn =
+              i > 0
+                ? `<button type="button" class="mediaCoverBtn" draggable="false" data-media-cover="${i}" aria-label="Сделать обложкой">На обложку</button>`
+                : "";
+            const tileAttrs = `class="mediaTile mediaTileMedia" draggable="true" data-media-index="${i}"`;
             if (isVideo) {
-              return `<div class="mediaTile">${removeBtn}${badge}<video src="${url}" muted playsinline></video></div>`;
+              return `<div ${tileAttrs}>${removeBtn}${coverBtn}${badge}<video src="${url}" muted playsinline draggable="false"></video></div>`;
             }
-            return `<div class="mediaTile">${removeBtn}${badge}<img src="${url}" alt="" loading="lazy" decoding="async" /></div>`;
+            return `<div ${tileAttrs}>${removeBtn}${coverBtn}${badge}<img src="${url}" alt="" loading="lazy" decoding="async" draggable="false" /></div>`;
           }
 
           for (let col = 0; col < 2; col++) {
@@ -4484,12 +4744,98 @@
           els.mediaGrid.innerHTML = tiles.join("");
         }
 
+        function labelFromPhotonFeature(f) {
+          if (!f || !f.properties) return "";
+          const p = f.properties;
+          const street = [p.housenumber, p.street].filter(Boolean).join(" ");
+          const city = [p.postcode, p.city].filter(Boolean).join(" ");
+          const parts = [street || p.name, city, p.country].filter(Boolean);
+          return parts.join(", ") || p.name || "";
+        }
+
+        function hideAddressSuggest() {
+          if (!els.addressSuggest) return;
+          els.addressSuggest.hidden = true;
+          els.addressSuggest.innerHTML = "";
+          if (els.addressSearchInput) els.addressSearchInput.setAttribute("aria-expanded", "false");
+        }
+
+        function applyMapPick(lat, lng, label) {
+          saveDraft({ mapLat: lat, mapLng: lng, mapLabel: label });
+          if (els.addressSearchInput) els.addressSearchInput.value = label;
+          requestAnimationFrame(() => {
+            initLeafletIfNeeded();
+            if (leafletMarker && leafletMap) {
+              leafletMarker.setLatLng([lat, lng]);
+              leafletMap.setView([lat, lng], 16, { animate: true });
+            }
+          });
+        }
+
+        async function reverseGeocodePhoton(lat, lng) {
+          try {
+            const res = await fetch(
+              `https://photon.komoot.io/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(
+                lng
+              )}&lang=ru`
+            );
+            if (!res.ok) return;
+            const js = await res.json();
+            const f = js.features && js.features[0];
+            if (!f) return;
+            const label = labelFromPhotonFeature(f);
+            saveDraft({ mapLat: lat, mapLng: lng, mapLabel: label });
+            if (els.addressSearchInput) els.addressSearchInput.value = label;
+          } catch {
+            saveDraft({ mapLat: lat, mapLng: lng });
+          }
+        }
+
+        async function searchPhoton(q) {
+          const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=8&lang=ru`;
+          const res = await fetch(url);
+          if (!res.ok) throw new Error("photon");
+          return res.json();
+        }
+
+        function initLeafletIfNeeded() {
+          if (typeof L === "undefined" || !els.leafletMap) return;
+          if (getComputedStyle(els.addressMap).display === "none") return;
+
+          const lat = Number(draft.mapLat);
+          const lng = Number(draft.mapLng);
+          const centerLat = Number.isFinite(lat) ? lat : 55.751244;
+          const centerLng = Number.isFinite(lng) ? lng : 37.618423;
+
+          if (!leafletMap) {
+            leafletMap = L.map(els.leafletMap, { zoomControl: true }).setView([centerLat, centerLng], 15);
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+              maxZoom: 19,
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            }).addTo(leafletMap);
+            leafletMarker = L.marker([centerLat, centerLng], { draggable: true }).addTo(leafletMap);
+            leafletMarker.on("dragend", (e) => {
+              const ll = e.target.getLatLng();
+              reverseGeocodePhoton(ll.lat, ll.lng);
+            });
+            leafletMap.on("click", (e) => {
+              leafletMarker.setLatLng(e.latlng);
+              reverseGeocodePhoton(e.latlng.lat, e.latlng.lng);
+            });
+          } else {
+            leafletMap.invalidateSize();
+          }
+        }
+
         function renderAddress() {
           const hasSaved = Boolean(draft.addressLine && draft.addressLine.trim());
           els.addressSaved.style.display = hasSaved ? "block" : "none";
           els.addressMap.style.display = hasSaved ? "none" : "block";
           els.addressLine.value = draft.addressLine || "";
           els.houseInput.value = draft.house || "";
+          if (els.addressSearchInput) {
+            els.addressSearchInput.value = draft.mapLabel || "";
+          }
         }
 
         function renderQty() {
@@ -4588,6 +4934,13 @@
               metaBuild.content +
               " · если экран не обновился: откройте в режиме инкогнито или обновите с принудительным сбросом кэша (⌘⇧R / Ctrl+Shift+R).";
           }
+
+          if (step === 7) {
+            const hasSaved = Boolean(draft.addressLine && draft.addressLine.trim());
+            if (!hasSaved) {
+              requestAnimationFrame(() => initLeafletIfNeeded());
+            }
+          }
         }
 
         // Навигация
@@ -4641,6 +4994,15 @@
         });
 
         els.mediaGrid.addEventListener("click", (e) => {
+          const coverBtn = e.target.closest(".mediaCoverBtn");
+          if (coverBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const idx = Number(coverBtn.dataset.mediaCover);
+            if (Number.isNaN(idx) || idx <= 0) return;
+            reorderMedia(idx, 0);
+            return;
+          }
           const removeBtn = e.target.closest(".mediaRemove");
           if (removeBtn) {
             e.preventDefault();
@@ -4662,6 +5024,60 @@
           const btn = e.target.closest("#mediaAddBtn");
           if (!btn) return;
           els.mediaInput.click();
+        });
+
+        els.mediaGrid.addEventListener("dragstart", (e) => {
+          const tile = e.target.closest(".mediaTileMedia");
+          if (!tile || e.target.closest(".mediaRemove, .mediaCoverBtn")) {
+            e.preventDefault();
+            return;
+          }
+          const from = Number(tile.dataset.mediaIndex);
+          if (Number.isNaN(from)) {
+            e.preventDefault();
+            return;
+          }
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData("text/plain", String(from));
+          tile.classList.add("mediaTile--dragging");
+        });
+
+        els.mediaGrid.addEventListener("dragend", (e) => {
+          const tile = e.target.closest(".mediaTileMedia");
+          if (tile) tile.classList.remove("mediaTile--dragging");
+          for (const t of els.mediaGrid.querySelectorAll(".mediaTile--dropTarget")) {
+            t.classList.remove("mediaTile--dropTarget");
+          }
+        });
+
+        els.mediaGrid.addEventListener("dragover", (e) => {
+          const tile = e.target.closest(".mediaTileMedia");
+          if (!tile) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+          for (const t of els.mediaGrid.querySelectorAll(".mediaTile--dropTarget")) {
+            t.classList.remove("mediaTile--dropTarget");
+          }
+          tile.classList.add("mediaTile--dropTarget");
+        });
+
+        els.mediaGrid.addEventListener("dragleave", (e) => {
+          const tile = e.target.closest(".mediaTileMedia");
+          if (!tile) return;
+          const rel = e.relatedTarget;
+          if (rel && tile.contains(rel)) return;
+          tile.classList.remove("mediaTile--dropTarget");
+        });
+
+        els.mediaGrid.addEventListener("drop", (e) => {
+          const tile = e.target.closest(".mediaTileMedia");
+          if (!tile) return;
+          e.preventDefault();
+          const from = Number(e.dataTransfer.getData("text/plain"));
+          const to = Number(tile.dataset.mediaIndex);
+          tile.classList.remove("mediaTile--dropTarget");
+          if (Number.isNaN(from) || Number.isNaN(to)) return;
+          reorderMedia(from, to);
         });
 
         // Step 2 title
@@ -4708,17 +5124,110 @@
         // Step 6 description
         els.descInput.addEventListener("input", () => saveDraft({ description: els.descInput.value }));
 
+        els.descGenerateBtn.addEventListener("click", async () => {
+          syncDraftFromDom();
+          const btn = els.descGenerateBtn;
+          const hint = document.getElementById("descGenHint");
+          btn.disabled = true;
+          btn.setAttribute("aria-busy", "true");
+          if (hint) hint.textContent = "Генерируем текст…";
+          try {
+            const text = await simpleAiGenerateDescription(draft);
+            saveDraft({ description: text });
+            if (hint) {
+              hint.textContent =
+                "Черновик собирается из названия, категории и состояния (локальный AI-помощник в браузере).";
+            }
+          } catch {
+            if (hint) {
+              hint.textContent = "Не удалось сгенерировать. Попробуйте ещё раз.";
+            }
+          } finally {
+            btn.disabled = false;
+            btn.removeAttribute("aria-busy");
+          }
+        });
+
         // Step 7 address
         els.houseInput.addEventListener("input", () => saveDraft({ house: els.houseInput.value }));
         els.addressLine.addEventListener("input", () => saveDraft({ addressLine: els.addressLine.value }));
-        els.editAddress.addEventListener("click", () => saveDraft({ addressLine: "" }));
+        els.editAddress.addEventListener("click", () => {
+          const prev = (draft.addressLine || "").trim();
+          saveDraft({ addressLine: "", mapLabel: prev || draft.mapLabel || "" });
+        });
 
-        // When leaving step 7 with house entered, create addressLine if empty
-        function ensureAddressFromHouse() {
-          if (draft.addressLine && draft.addressLine.trim()) return;
+        els.addressSaveMapBtn.addEventListener("click", () => {
+          const label = (els.addressSearchInput.value.trim() || draft.mapLabel || "").trim();
+          if (!label) return;
           const h = (draft.house || "").trim();
-          if (!h) return;
-          saveDraft({ addressLine: `Дом ${h}` });
+          saveDraft({ addressLine: h ? `${label}, ${h}` : label, mapLabel: "" });
+        });
+
+        els.addressSearchInput.addEventListener("input", () => {
+          clearTimeout(addressSuggestTimer);
+          saveDraft({ mapLabel: els.addressSearchInput.value });
+          const q = els.addressSearchInput.value.trim();
+          if (q.length < 2) {
+            hideAddressSuggest();
+            return;
+          }
+          addressSuggestTimer = setTimeout(async () => {
+            try {
+              const js = await searchPhoton(q);
+              const feats = js.features || [];
+              if (!feats.length) {
+                hideAddressSuggest();
+                return;
+              }
+              els.addressSuggest.hidden = false;
+              els.addressSearchInput.setAttribute("aria-expanded", "true");
+              els.addressSuggest.innerHTML = feats
+                .map((f) => {
+                  const [lon, lat] = f.geometry.coordinates;
+                  const label = labelFromPhotonFeature(f);
+                  return `<button type="button" role="option" data-photon-lat="${lat}" data-photon-lon="${lon}" data-photon-label="${encodeURIComponent(
+                    label
+                  )}">${escapeHtml(label)}</button>`;
+                })
+                .join("");
+            } catch {
+              hideAddressSuggest();
+            }
+          }, 380);
+        });
+
+        els.addressSearchInput.addEventListener("blur", () => {
+          setTimeout(() => hideAddressSuggest(), 220);
+        });
+
+        els.addressSuggest.addEventListener("pointerdown", (e) => {
+          if (e.target.closest("button[data-photon-lat]")) e.preventDefault();
+        });
+
+        els.addressSuggest.addEventListener("click", (e) => {
+          const btn = e.target.closest("button[data-photon-lat]");
+          if (!btn) return;
+          const lat = Number(btn.dataset.photonLat);
+          const lon = Number(btn.dataset.photonLon);
+          const label = decodeURIComponent(btn.getAttribute("data-photon-label") || "");
+          if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+          applyMapPick(lat, lon, label);
+          hideAddressSuggest();
+        });
+
+        function ensureAddressFromStep7() {
+          if (draft.addressLine && draft.addressLine.trim()) return;
+          const label =
+            (draft.mapLabel || "").trim() ||
+            (els.addressSearchInput && els.addressSearchInput.value.trim()) ||
+            "";
+          if (label) {
+            const h = (draft.house || "").trim();
+            saveDraft({ addressLine: h ? `${label}, ${h}` : label, mapLabel: "" });
+            return;
+          }
+          const h = (draft.house || "").trim();
+          if (h) saveDraft({ addressLine: `Дом ${h}` });
         }
 
         // Step 8 price/qty
@@ -4750,7 +5259,7 @@
         // step hook: ensure address save when moving forward from step 7
         const originalSetStep = setStep;
         setStep = function (step) {
-          if ((draft.step || 1) === 7 && step > 7) ensureAddressFromHouse();
+          if ((draft.step || 1) === 7 && step > 7) ensureAddressFromStep7();
           originalSetStep(step);
         };
 
