@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="title-suggest-tags-v21" />
+    <meta name="prototype-build" content="title-tags-awesomplete-a-v22" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "title-suggest-tags-v21";
+        var NEED = "title-tags-awesomplete-a-v22";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -566,33 +566,13 @@
         color: rgba(0, 0, 0, 0.45);
       }
 
-      /* Шаг 2: Awesomplete + Wikipedia opensearch (бесплатно, без ключа). */
+      /* Шаг 2: Awesomplete ведёт list; подсказки только тегами (вариант A — выпадашка скрыта). */
       .step[data-step="2"] .card .field {
         position: relative;
       }
 
-      /* Awesomplete 1.x: список — .awesomplete > ul (не awesomplete__list) */
       .step[data-step="2"] .awesomplete > ul {
-        margin: 4px 0 0;
-        padding: 4px 0;
-        border-radius: 12px;
-        border: 1px solid var(--stroke);
-        background: var(--surface);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        max-height: 220px;
-        overflow: auto;
-        z-index: 30;
-      }
-
-      .step[data-step="2"] .awesomplete > ul > li {
-        padding: 10px 12px;
-        font: 400 15px/1.35 var(--font);
-        color: var(--text);
-      }
-
-      .step[data-step="2"] .awesomplete > ul > li[aria-selected="true"],
-      .step[data-step="2"] .awesomplete > ul > li:hover {
-        background: rgba(0, 91, 255, 0.08);
+        display: none !important;
       }
 
       /* Подсказки-«теги» под полем (работают без Awesomplete, если CDN недоступен). */
@@ -2093,7 +2073,6 @@
           renderTitleSuggestTags(merged);
           if (titleAwesomplete) {
             titleAwesomplete.list = merged;
-            titleAwesomplete.evaluate();
           }
         }
 
