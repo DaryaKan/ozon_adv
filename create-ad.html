@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="cache-20260330-1" />
+    <meta name="prototype-build" content="cache-20260330-2" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "cache-20260330-1";
+        var NEED = "cache-20260330-2";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -319,23 +319,102 @@
         color: var(--primary);
       }
 
-      .step[data-step="2"] .card {
+      /* Шаги 2–10: без рамки карточки; поля как на шаге 2 (серый фон, без обводки). */
+      .step[data-step="2"] .card,
+      .step[data-step="3"] .card,
+      .step[data-step="4"] .card,
+      .step[data-step="5"] .card,
+      .step[data-step="6"] .card,
+      .step[data-step="7"] .card,
+      .step[data-step="8"] .card,
+      .step[data-step="9"] .card,
+      .step[data-step="10"] .card {
         border: 0;
         background: transparent;
         padding-left: 0;
         padding-right: 0;
       }
 
-      .step[data-step="2"] .card .input {
+      .step[data-step="2"] .card .input,
+      .step[data-step="3"] .card .input,
+      .step[data-step="6"] .card .textarea,
+      .step[data-step="7"] .card .input,
+      .step[data-step="8"] .card .input {
         border: 0;
         background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
         outline: none;
         box-shadow: none;
       }
 
-      .step[data-step="2"] .card .input:focus-visible {
+      .step[data-step="2"] .card .input:focus,
+      .step[data-step="3"] .card .input:focus,
+      .step[data-step="6"] .card .textarea:focus,
+      .step[data-step="7"] .card .input:focus,
+      .step[data-step="8"] .card .input:focus {
+        border-color: transparent;
+        outline: none;
+        box-shadow: none;
+      }
+
+      .step[data-step="2"] .card .input:focus-visible,
+      .step[data-step="3"] .card .input:focus-visible,
+      .step[data-step="6"] .card .textarea:focus-visible,
+      .step[data-step="7"] .card .input:focus-visible,
+      .step[data-step="8"] .card .input:focus-visible {
         outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
         outline-offset: 2px;
+      }
+
+      .step[data-step="3"] .suggest {
+        border: 0;
+        background: transparent;
+        border-radius: var(--radiusMd);
+        overflow: hidden;
+      }
+
+      .step[data-step="3"] .suggest button {
+        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+      }
+
+      .step[data-step="3"] .suggest button:last-child {
+        border-bottom: 0;
+      }
+
+      .step[data-step="3"] .tree {
+        border: 0;
+        background: transparent;
+        border-radius: var(--radiusMd);
+        overflow: hidden;
+      }
+
+      .step[data-step="3"] .treeItem {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.04));
+      }
+
+      .step[data-step="3"] .treeItem:last-child {
+        border-bottom: 0;
+      }
+
+      .step[data-step="4"] .pill,
+      .step[data-step="5"] .pill,
+      .step[data-step="8"] .pill,
+      .step[data-step="9"] .pill {
+        border: 0;
+        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
+      }
+
+      .step[data-step="4"] .pill[aria-pressed="true"],
+      .step[data-step="5"] .pill[aria-pressed="true"],
+      .step[data-step="8"] .pill[aria-pressed="true"],
+      .step[data-step="9"] .pill[aria-pressed="true"] {
+        border: 0;
+      }
+
+      .step[data-step="7"] .mapMock {
+        border: 0;
+        box-shadow: none;
       }
 
       /* Подсказки названия — теги (paragraph, серый фон, чёрный текст). */
@@ -758,19 +837,16 @@
         <!-- 3. Категория -->
         <section class="step" data-step="3">
           <div class="card">
-            <h2 class="h">Категория</h2>
             <div class="field">
               <div class="label">Поиск категории</div>
-              <input class="input" id="categorySearch" placeholder="Например: Чехол, iPhone, телефон" />
+              <input class="input" id="categorySearch" placeholder="" autocomplete="off" />
             </div>
 
             <div class="field">
-              <div class="label">Подсказки по названию</div>
               <div class="suggest" id="categorySuggest"></div>
             </div>
 
             <div class="field">
-              <div class="label">Дерево категорий</div>
               <div class="tree" id="categoryTree"></div>
               <div class="hint" id="categoryPathHint"></div>
             </div>
@@ -780,7 +856,6 @@
         <!-- 4. Состояние -->
         <section class="step" data-step="4">
           <div class="card">
-            <h2 class="h">Состояние</h2>
             <div class="pillRow" id="conditionPills">
               <button class="pill" type="button" data-value="new" aria-pressed="false">Новое</button>
               <button class="pill" type="button" data-value="used" aria-pressed="false">Б/у</button>
@@ -791,7 +866,6 @@
         <!-- 5. Вид объявления -->
         <section class="step" data-step="5">
           <div class="card">
-            <h2 class="h">Вид объявления</h2>
             <div class="pillRow" id="adTypePills">
               <button class="pill" type="button" data-value="personal" aria-pressed="false">
                 Продаю своё
@@ -806,13 +880,12 @@
         <!-- 6. Описание -->
         <section class="step" data-step="6">
           <div class="card">
-            <h2 class="h">Описание товара</h2>
             <div class="field">
-              <div class="label">Описание</div>
               <textarea
                 class="textarea"
                 id="descInput"
-                placeholder="Опишите товар, его параметры, нюансы"
+                placeholder="Опишите товар, параметры, состояние"
+                aria-label="Описание товара"
               ></textarea>
             </div>
           </div>
@@ -821,28 +894,21 @@
         <!-- 7. Адрес -->
         <section class="step" data-step="7">
           <div class="card">
-            <h2 class="h">Адрес</h2>
-            <div class="hint">
-              Если адрес уже выбран — покажем сохранённый. Если нет — покажем карту выбора дома.
-            </div>
-
             <div id="addressSaved" style="display:none">
               <div class="field">
-                <div class="label">Сохранённый адрес</div>
-                <input class="input" id="addressLine" placeholder="Город, улица, дом" />
-                <div class="hint">Можно отредактировать вручную.</div>
+                <div class="label">Адрес</div>
+                <input class="input" id="addressLine" placeholder="Город, улица, дом" autocomplete="street-address" />
               </div>
               <button class="btn btnSecondary" id="editAddress" type="button">Выбрать на карте</button>
             </div>
 
             <div id="addressMap">
-              <div class="mapMock" aria-label="Map mock">
+              <div class="mapMock" aria-label="Карта выбора адреса">
                 <div class="pin" aria-hidden="true"></div>
               </div>
-              <div class="field" style="margin-top:12px">
+              <div class="field" style="margin-top: 12px">
                 <div class="label">Дом</div>
-                <input class="input" id="houseInput" placeholder="Например: 12к1" />
-                <div class="hint">Для прототипа: дом выбирается как значение поля.</div>
+                <input class="input" id="houseInput" placeholder="Например: 12к1" inputmode="text" autocomplete="address-line2" />
               </div>
             </div>
           </div>
@@ -851,24 +917,32 @@
         <!-- 8. Цена -->
         <section class="step" data-step="8">
           <div class="card">
-            <h2 class="h">Цена</h2>
             <div class="field">
-              <div class="label">Сумма</div>
-              <input class="input" id="priceInput" inputmode="numeric" placeholder="0" />
+              <input
+                class="input"
+                id="priceInput"
+                inputmode="numeric"
+                placeholder="Сумма в ₽"
+                aria-label="Сумма в рублях"
+              />
             </div>
 
             <div class="field">
-              <div class="label">Несколько штук в наличии</div>
+              <div class="hint">Несколько штук в наличии</div>
               <div class="pillRow" id="qtyToggleRow">
                 <button class="pill" id="qtyToggle" type="button" aria-pressed="false">Выключено</button>
               </div>
-              <div class="hint">Включи, чтобы указать количество.</div>
             </div>
 
             <div class="field" id="qtyField" style="display:none">
-              <div class="label">Количество</div>
               <div class="qtyRow">
-                <input class="input" id="qtyInput" inputmode="numeric" placeholder="1" />
+                <input
+                  class="input"
+                  id="qtyInput"
+                  inputmode="numeric"
+                  placeholder="Количество"
+                  aria-label="Количество товара"
+                />
                 <button class="iconBtn" id="qtyMinus" type="button" aria-label="Minus">−</button>
                 <button class="iconBtn" id="qtyPlus" type="button" aria-label="Plus">+</button>
               </div>
@@ -879,7 +953,6 @@
         <!-- 9. Способ связи -->
         <section class="step" data-step="9">
           <div class="card">
-            <h2 class="h">Способ связи</h2>
             <div class="pillRow" id="contactPills">
               <button class="pill" type="button" data-value="calls" aria-pressed="false">Только звонки</button>
               <button class="pill" type="button" data-value="messages" aria-pressed="false">
@@ -895,8 +968,7 @@
         <!-- 10. Карточка товара -->
         <section class="step" data-step="10">
           <div class="card">
-            <h2 class="h">Проверка</h2>
-            <div class="hint">Карточка товара из введённых данных.</div>
+            <div class="hint">Проверь данные перед публикацией.</div>
 
             <div class="productCard">
               <div class="productMedia" id="productMedia">Нет фото</div>
