@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="navbar-back-chevron" />
+    <meta name="prototype-build" content="back-btn-visible-kartina-tags" />
     <title>Создать объявление — Ozon ADV</title>
 
     <style>
@@ -134,6 +134,11 @@
       .backBtn:focus-visible {
         outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
         outline-offset: 2px;
+      }
+
+      /* Поверх глобальных стилей UI-kit: «Назад» не должна пропадать из-за [hidden]. */
+      .backBtn.is-visible {
+        display: inline-grid !important;
       }
 
       .closeBtn {
@@ -675,7 +680,7 @@
       <header class="topbar">
         <div class="navRow">
           <div class="navRowSide navRowSide--start">
-            <button class="backBtn" id="backStep" type="button" aria-label="Назад" hidden>
+            <button class="backBtn" id="backStep" type="button" aria-label="Назад" hidden style="display: none">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                 <path
                   d="M8.58008 3.32065C9.09313 2.8589 9.88385 2.90052 10.3457 3.41342C10.8075 3.92653 10.766 4.71721 10.2529 5.17905L7.11816 8.00034L10.2529 10.8206C10.7661 11.2825 10.8075 12.0731 10.3457 12.5863C9.88387 13.0993 9.09319 13.1408 8.58008 12.679L4.41406 8.92905C4.15075 8.69207 4.00009 8.35458 4 8.00034C4 7.64598 4.15067 7.3077 4.41406 7.07065L8.58008 3.32065Z"
@@ -1201,6 +1206,35 @@
             for (const t of beautyTails) list.push(`${b} ${t}`);
           }
 
+          const artBases = [
+            "Картина",
+            "Постер",
+            "Репродукция",
+            "Панно",
+            "Фотокартина",
+            "Гравюра",
+          ];
+          const artTails = [
+            "маслом",
+            "акрилом",
+            "на холсте",
+            "в рамке",
+            "без рамы",
+            "интерьерная",
+            "настенная",
+            "б/у",
+            "новая",
+            "ручная работа",
+            "современная",
+            "абстракция",
+            "пейзаж",
+            "большой формат",
+            "для гостиной",
+          ];
+          for (const b of artBases) {
+            for (const t of artTails) list.push(`${b} ${t}`);
+          }
+
           list.push(
             "Платье в пол",
             "Платье футляр",
@@ -1216,7 +1250,12 @@
             "Умная колонка",
             "Электросамокат",
             "Гитара акустическая",
-            "Беговая дорожка"
+            "Беговая дорожка",
+            "Картина на холсте",
+            "Картина маслом",
+            "Картина интерьерная",
+            "Постер А2",
+            "Репродукция в рамке"
           );
 
           return Array.from(new Set(list));
@@ -1531,7 +1570,15 @@
 
           els.nextBtn.textContent = step === TOTAL ? "Опубликовать" : "Далее";
 
-          els.backStep.hidden = step <= 1;
+          if (step <= 1) {
+            els.backStep.hidden = true;
+            els.backStep.classList.remove("is-visible");
+            els.backStep.style.display = "none";
+          } else {
+            els.backStep.hidden = false;
+            els.backStep.classList.add("is-visible");
+            els.backStep.style.display = "inline-grid";
+          }
 
           // Sync fields
           els.titleInput.value = draft.title || "";
