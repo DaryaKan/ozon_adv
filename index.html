@@ -7,6 +7,12 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <title>Ozon Ads Prototype</title>
     <style>
+      @font-face {
+        font-family: "Onest";
+        font-weight: 100 900;
+        font-display: swap;
+        src: url("https://st.ozone.ru/s3/ozon-fonts/onest.woff2") format("woff2");
+      }
       html,
       body {
         height: 100%;
@@ -16,12 +22,67 @@
         display: grid;
         place-items: center;
         background: #ffffff;
+        font-family: "Onest", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       }
       .wrap {
         display: grid;
         justify-items: center;
         gap: 18px;
         padding: 24px;
+        width: min(400px, 100%);
+        box-sizing: border-box;
+      }
+      .draftCard {
+        width: 100%;
+        max-width: 320px;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        background: #fff;
+        overflow: hidden;
+        text-align: left;
+      }
+      .draftCardLink {
+        display: grid;
+        gap: 8px;
+        padding: 12px 14px;
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+      }
+      .draftCardLink:hover {
+        background: rgba(0, 0, 0, 0.02);
+      }
+      .draftCardLink:focus-visible {
+        outline: 2px solid rgba(0, 91, 255, 0.45);
+        outline-offset: 2px;
+      }
+      .draftBadge {
+        display: inline-block;
+        align-self: start;
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.2;
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: rgba(0, 0, 0, 0.06);
+        color: #000;
+      }
+      .draftTitle {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1.35;
+        color: #0a0a0a;
+      }
+      .draftLines {
+        display: grid;
+        gap: 4px;
+        font-size: 13px;
+        line-height: 1.35;
+        color: rgba(0, 0, 0, 0.56);
+      }
+      .draftLines strong {
+        font-weight: 600;
+        color: #0a0a0a;
       }
       img {
         width: min(70vw, 420px);
@@ -63,8 +124,89 @@
         aria-label="Ozon logo"
       />
 
-      <a class="btn" href="./create-ad.html?v=step2-title-tags" aria-label="Open create ad form">Создать объявление</a>
+      <div class="draftCard" id="draftCard" hidden>
+        <a class="draftCardLink" id="draftCardLink" href="./create-ad.html" aria-label="Продолжить черновик объявления">
+          <span class="draftBadge">Черновик</span>
+          <div class="draftTitle" id="draftCardTitle">Без названия</div>
+          <div class="draftLines" id="draftCardLines"></div>
+        </a>
+      </div>
+
+      <a class="btn" href="./create-ad.html?new=1" id="btnCreateAd" aria-label="Создать новое объявление">Создать объявление</a>
       <a class="btn btnSecondary" href="./ui-kit.html" aria-label="Open UI kit page">UI kit</a>
     </div>
+    <script>
+      (function () {
+        var DRAFT_KEY = "ozon_adv_create_ad_draft_v1";
+
+        function isDraftEmpty(d) {
+          if (!d) return true;
+          if ((d.step || 1) > 1) return false;
+          if (d.condition || d.adType || d.contact) return false;
+          if ((d.title || "").trim()) return false;
+          if (Array.isArray(d.categoryPath) && d.categoryPath.length) return false;
+          if ((d.description || "").trim()) return false;
+          if (String(d.price || "").trim()) return false;
+          if ((d.addressLine || "").trim()) return false;
+          return true;
+        }
+
+        function formatPrice(v) {
+          var s = String(v || "").replace(/[^\d]/g, "");
+          if (!s) return "";
+          var n = parseInt(s, 10);
+          if (!n) return "";
+          return new Intl.NumberFormat("ru-RU").format(n) + " ₽";
+        }
+
+        function renderDraftCard() {
+          var wrap = document.getElementById("draftCard");
+          var titleEl = document.getElementById("draftCardTitle");
+          var linesEl = document.getElementById("draftCardLines");
+          var raw = null;
+          try {
+            raw = localStorage.getItem(DRAFT_KEY);
+          } catch (e) {
+            return;
+          }
+          if (!raw) {
+            wrap.hidden = true;
+            return;
+          }
+          var d;
+          try {
+            d = JSON.parse(raw);
+          } catch (e) {
+            wrap.hidden = true;
+            return;
+          }
+          if (isDraftEmpty(d)) {
+            wrap.hidden = true;
+            return;
+          }
+          wrap.hidden = false;
+          titleEl.textContent = (d.title || "").trim() || "Без названия";
+          var lines = [];
+          var step = d.step || 1;
+          lines.push("Шаг " + step + " из 10");
+          var priceStr = formatPrice(d.price);
+          if (priceStr) lines.push("<strong>" + priceStr + "</strong>");
+          var cat = (d.categoryPathLabel || "").trim();
+          if (cat) lines.push(cat);
+          var desc = (d.description || "").trim();
+          if (desc) lines.push(desc.length > 80 ? desc.slice(0, 80) + "…" : desc);
+          if (d.condition) lines.push(d.condition === "new" ? "Состояние: новое" : "Состояние: б/у");
+          if (d.addressLine && String(d.addressLine).trim()) lines.push(String(d.addressLine).trim());
+          linesEl.textContent = "";
+          lines.forEach(function (line) {
+            var row = document.createElement("div");
+            row.textContent = line;
+            linesEl.appendChild(row);
+          });
+        }
+
+        renderDraftCard();
+      })();
+    </script>
   </body>
 </html>

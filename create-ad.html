@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="step2-title-tags" />
+    <meta name="prototype-build" content="nav-draft-home-new" />
     <title>Создать объявление — Ozon ADV</title>
 
     <style>
@@ -904,7 +904,7 @@
           contact: "",
         });
 
-        let draft = loadDraft();
+        let draft;
         let mediaObjectUrls = [];
 
         function loadDraft() {
@@ -919,9 +919,35 @@
           }
         }
 
+        function initDraft() {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get("new") === "1") {
+            localStorage.removeItem(DRAFT_KEY);
+            draft = defaultDraft();
+            history.replaceState(null, "", window.location.pathname);
+          } else {
+            draft = loadDraft();
+          }
+        }
+
         function persistDraftToStorage() {
-          const stored = { ...draft, media: [] };
+          const categoryPathLabel =
+            draft.categoryPath && draft.categoryPath.length
+              ? categoryPathNames(draft.categoryPath).join(" → ")
+              : "";
+          const stored = { ...draft, media: [], categoryPathLabel };
           localStorage.setItem(DRAFT_KEY, JSON.stringify(stored));
+        }
+
+        function syncDraftFromDom() {
+          draft.title = els.titleInput.value;
+          draft.description = els.descInput.value;
+          draft.price = els.priceInput.value;
+          draft.addressLine = els.addressLine.value;
+          draft.house = els.houseInput.value;
+          const q = Number.parseInt(String(els.qtyInput.value || "1"), 10);
+          draft.qty = Number.isFinite(q) ? Math.max(1, q) : 1;
+          draft.qtyEnabled = els.qtyToggle.getAttribute("aria-pressed") === "true";
         }
 
         function saveDraft(patch) {
@@ -1298,7 +1324,8 @@
         // Навигация
         els.nextBtn.addEventListener("click", () => {
           if ((draft.step || 1) >= TOTAL) {
-            // demo publish: keep draft, just go home
+            syncDraftFromDom();
+            localStorage.removeItem(DRAFT_KEY);
             window.location.href = "./index.html";
             return;
           }
@@ -1306,6 +1333,8 @@
         });
 
         els.closeFlow.addEventListener("click", () => {
+          syncDraftFromDom();
+          persistDraftToStorage();
           window.location.href = "./index.html";
         });
 
@@ -1462,7 +1491,7 @@
           originalSetStep(step);
         };
 
-        // Initial
+        initDraft();
         render();
       })();
     </script>
