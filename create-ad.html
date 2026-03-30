@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="qty-stepper-always-v19" />
+    <meta name="prototype-build" content="title-suggest-tags-v21" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "qty-stepper-always-v19";
+        var NEED = "title-suggest-tags-v21";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -595,6 +595,38 @@
         background: rgba(0, 91, 255, 0.08);
       }
 
+      /* Подсказки-«теги» под полем (работают без Awesomplete, если CDN недоступен). */
+      .titleTagList {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+        min-height: 0;
+      }
+
+      .titleTagList[hidden] {
+        display: none !important;
+      }
+
+      .titleTag {
+        appearance: none;
+        border: 0;
+        margin: 0;
+        cursor: pointer;
+        font: 400 15px/1.35 var(--font);
+        color: #000;
+        background: var(--ozBGSecondary, rgba(0, 0, 0, 0.06));
+        border-radius: var(--radiusMd, 10px);
+        padding: 8px 12px;
+        text-align: left;
+        max-width: 100%;
+      }
+
+      .titleTag:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+        outline-offset: 2px;
+      }
+
       .suggest {
         border: 1px solid var(--stroke);
         border-radius: var(--radiusMd);
@@ -962,11 +994,11 @@
         -webkit-tap-highlight-color: transparent;
       }
 
-      .step[data-step="8"] .qtyStepperBtn:hover:not(:disabled) {
+      .step[data-step="8"] .qtyStepperBtn:hover {
         background: rgba(0, 0, 0, 0.04);
       }
 
-      .step[data-step="8"] .qtyStepperBtn:active:not(:disabled) {
+      .step[data-step="8"] .qtyStepperBtn:active {
         background: rgba(0, 0, 0, 0.07);
       }
 
@@ -975,11 +1007,6 @@
         box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 45%, transparent);
         position: relative;
         z-index: 1;
-      }
-
-      .step[data-step="8"] .qtyStepperBtn:disabled {
-        opacity: 0.45;
-        cursor: not-allowed;
       }
 
       .step[data-step="8"] .qtyStepperInput {
@@ -1002,10 +1029,6 @@
         box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 45%, transparent);
         position: relative;
         z-index: 1;
-      }
-
-      .step[data-step="8"] .qtyStepperInput:read-only {
-        cursor: default;
       }
 
       .step[data-step="8"] .qtyStepperInput::placeholder {
@@ -1251,6 +1274,13 @@
                 aria-autocomplete="list"
               />
             </div>
+            <div
+              class="titleTagList"
+              id="titleSuggest"
+              role="region"
+              aria-label="Подсказки для названия"
+              hidden
+            ></div>
           </div>
         </section>
 
@@ -1377,8 +1407,8 @@
               </div>
             </div>
 
-            <div class="field" id="qtyField">
-              <div class="qtyStepper" id="qtyStepper" role="group" aria-label="Количество товара">
+            <div class="field" id="qtyField" style="display: none">
+              <div class="qtyStepper" role="group" aria-label="Количество товара">
                 <button class="qtyStepperBtn" id="qtyMinus" type="button" aria-label="Уменьшить количество">
                   −
                 </button>
@@ -1494,6 +1524,7 @@
           mediaGrid: document.getElementById("mediaGrid"),
 
           titleInput: document.getElementById("titleInput"),
+          titleSuggest: document.getElementById("titleSuggest"),
 
           categoryTree: document.getElementById("categoryTree"),
           categoryPathHint: document.getElementById("categoryPathHint"),
@@ -1514,7 +1545,6 @@
           priceInput: document.getElementById("priceInput"),
           qtyToggle: document.getElementById("qtyToggle"),
           qtyField: document.getElementById("qtyField"),
-          qtyStepper: document.getElementById("qtyStepper"),
           qtyInput: document.getElementById("qtyInput"),
           qtyMinus: document.getElementById("qtyMinus"),
           qtyPlus: document.getElementById("qtyPlus"),
@@ -2033,15 +2063,38 @@
           }, 280);
         }
 
+        function renderTitleSuggestTags(merged) {
+          if (!els.titleSuggest) return;
+          const list = Array.isArray(merged) ? merged.slice(0, 8) : [];
+          if (!list.length) {
+            els.titleSuggest.innerHTML = "";
+            els.titleSuggest.hidden = true;
+            return;
+          }
+          els.titleSuggest.hidden = false;
+          els.titleSuggest.innerHTML = list
+            .map((s) => {
+              const t = String(s);
+              const safe = t
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/"/g, "&quot;");
+              return `<button type="button" class="titleTag" data-suggest="${encodeURIComponent(t)}">${safe}</button>`;
+            })
+            .join("");
+        }
+
         function refreshTitleSuggest() {
-          if (!titleAwesomplete) return;
           const q = (draft.title || "").trim();
           const local = buildTitleSuggestions(q);
           const step = draft.step || 1;
           const remote = step === 2 ? titleRemoteSuggestions : [];
           const merged = mergeTitleSuggestions(local, remote);
-          titleAwesomplete.list = merged;
-          titleAwesomplete.evaluate();
+          renderTitleSuggestTags(merged);
+          if (titleAwesomplete) {
+            titleAwesomplete.list = merged;
+            titleAwesomplete.evaluate();
+          }
         }
 
         function initTitleAwesomplete() {
@@ -5411,17 +5464,9 @@
         }
 
         function renderQty() {
-          const enabled = !!draft.qtyEnabled;
-          els.qtyToggle.setAttribute("aria-checked", enabled ? "true" : "false");
-          els.qtyField.style.display = "block";
+          els.qtyToggle.setAttribute("aria-checked", draft.qtyEnabled ? "true" : "false");
+          els.qtyField.style.display = draft.qtyEnabled ? "block" : "none";
           els.qtyInput.value = String(draft.qty || 1);
-          els.qtyMinus.disabled = !enabled;
-          els.qtyPlus.disabled = !enabled;
-          els.qtyInput.readOnly = !enabled;
-          if (els.qtyStepper) {
-            els.qtyStepper.setAttribute("aria-disabled", enabled ? "false" : "true");
-            els.qtyStepper.classList.toggle("qtyStepper--locked", !enabled);
-          }
         }
 
         function renderPills(container, value) {
@@ -5737,6 +5782,13 @@
           },
           true
         );
+
+        els.titleSuggest.addEventListener("click", (e) => {
+          const btn = e.target.closest("button.titleTag[data-suggest]");
+          if (!btn) return;
+          const val = decodeURIComponent(btn.dataset.suggest);
+          saveDraft({ title: val });
+        });
 
         // Step 3 category — уровни дерева (вперёд / назад)
         els.categoryTree.addEventListener("click", (e) => {
