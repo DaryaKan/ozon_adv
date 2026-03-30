@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="no-category-guess-v1" />
+    <meta name="prototype-build" content="pages-20260330-6" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "no-category-guess-v1";
+        var NEED = "pages-20260330-6";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -831,10 +831,11 @@
         <section class="step" data-step="3">
           <div class="card">
             <div class="field">
+              <div class="label">Поиск категории</div>
               <input
                 class="input"
                 id="categorySearch"
-                placeholder="Фильтр по названию раздела"
+                placeholder="Начните вводить название раздела"
                 autocomplete="off"
               />
             </div>
@@ -1072,6 +1073,7 @@
 
         let draft;
         let mediaObjectUrls = [];
+        let lastRenderedStep = 1;
 
         function loadDraft() {
           try {
@@ -2205,12 +2207,24 @@
         function renderCategoryTree() {
           const q = (els.categorySearch.value || "").trim().toLowerCase();
           const catPath = normalizeCategoryPath(draft.categoryPath);
-          let children = getChildrenForPath(catPath);
+          const baseChildren = getChildrenForPath(catPath);
+          let children = baseChildren;
+          let filterEmpty = false;
           if (q) {
-            children = children.filter((c) => c.name.toLowerCase().includes(q));
+            const filtered = baseChildren.filter((c) => c.name.toLowerCase().includes(q));
+            if (filtered.length) {
+              children = filtered;
+            } else {
+              children = baseChildren;
+              filterEmpty = true;
+            }
           }
           const names = categoryPathNames(catPath);
-          els.categoryPathHint.textContent = names.length ? `Выбрано: ${names.join(" → ")}` : "Не выбрано";
+          let hint = names.length ? `Выбрано: ${names.join(" → ")}` : "Не выбрано";
+          if (filterEmpty && q) {
+            hint += " · По фильтру ничего не найдено — показаны все подразделы уровня";
+          }
+          els.categoryPathHint.textContent = hint;
 
           const items = [];
           if (catPath.length) {
@@ -2338,6 +2352,10 @@
 
         function render() {
           const step = draft.step || 1;
+          if (step === 3 && lastRenderedStep !== 3) {
+            els.categorySearch.value = "";
+          }
+          lastRenderedStep = step;
           els.stepTitle.textContent = stepTitles[step] || "Создать объявление";
           els.stepSubtitle.textContent = `Шаг ${step} из ${TOTAL}`;
           els.progressBar.style.width = `${Math.round(((step - 1) / (TOTAL - 1)) * 100)}%`;
