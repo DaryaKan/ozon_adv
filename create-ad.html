@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="title-tags-awesomplete-a-v22" />
+    <meta name="prototype-build" content="title-multiword-suggest-v23" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "title-tags-awesomplete-a-v22";
+        var NEED = "title-multiword-suggest-v23";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -1957,7 +1957,11 @@
             "Картина маслом",
             "Картина интерьерная",
             "Постер А2",
-            "Репродукция в рамке"
+            "Репродукция в рамке",
+            "Комбинезон детский",
+            "Комбинезон детская",
+            "Комбинезон для новорожденных",
+            "Комбинезон зимний"
           );
 
           return Array.from(new Set(list));
@@ -1972,12 +1976,38 @@
 
           const notExact = (s) => s.trim().toLowerCase() !== current.toLowerCase();
 
-          let results = uniq.filter((s) => s.toLowerCase().includes(q)).filter(notExact);
+          const words = current.split(/\s+/).filter(Boolean);
+          let results = [];
 
-          /* После выбора тега полное совпадение с подсказкой исчезает из списка; если по полной строке
-             больше нет вариантов — показываем другие по первому слову (например «Чехол …»). */
+          if (words.length >= 2) {
+            const last = words[words.length - 1].toLowerCase();
+            const base = words.slice(0, -1).join(" ").toLowerCase();
+            const fullPrefix = `${base} ${last}`;
+            /* Дополнение второго и следующих слов: «Комбинезон дет» → «Комбинезон детский …». */
+            results = uniq
+              .filter((s) => {
+                const sl = s.toLowerCase();
+                return sl.startsWith(fullPrefix) && sl.length > fullPrefix.length;
+              })
+              .filter(notExact);
+            if (results.length === 0 && last.length >= 1) {
+              results = uniq
+                .filter((s) => {
+                  const sl = s.toLowerCase();
+                  if (!sl.startsWith(`${base} `)) return false;
+                  const after = sl.slice(base.length + 1);
+                  const firstWordAfter = after.split(/\s+/)[0] || "";
+                  return firstWordAfter.startsWith(last) && firstWordAfter.length > last.length;
+                })
+                .filter(notExact);
+            }
+          } else {
+            results = uniq.filter((s) => s.toLowerCase().includes(q)).filter(notExact);
+          }
+
+          /* Если по полной строке пусто — как раньше: по первому слову (например «Чехол …»). */
           if (results.length === 0 && current.length > 0) {
-            const firstWord = current.split(/\s+/)[0]?.toLowerCase() || "";
+            const firstWord = words[0]?.toLowerCase() || "";
             if (firstWord.length >= 2) {
               results = uniq.filter((s) => s.toLowerCase().includes(firstWord)).filter(notExact);
             }
@@ -2016,23 +2046,51 @@
           return titles.map((t) => String(t).trim()).filter(Boolean);
         }
 
+        function wikiQueryForTitleInput(raw) {
+          const t = (raw || "").trim();
+          if (t.length < 2) return "";
+          const words = t.split(/\s+/).filter(Boolean);
+          if (words.length >= 2) {
+            const last = words[words.length - 1];
+            /* Второе и далее слово: opensearch по последнему токену («дет» → детский, детская …). */
+            if (last.length >= 2) return last;
+            return t;
+          }
+          return t;
+        }
+
+        function filterWikiTitlesForContext(titles, raw) {
+          const t = (raw || "").trim();
+          if (!t) return titles;
+          const words = t.split(/\s+/).filter(Boolean);
+          if (words.length < 2) return titles;
+          const last = words[words.length - 1].toLowerCase();
+          if (last.length < 2) return titles;
+          const filtered = titles.filter((x) => {
+            const xl = String(x).toLowerCase();
+            return xl.includes(last);
+          });
+          return filtered.length ? filtered : titles;
+        }
+
         function scheduleTitleWikiRefresh() {
           if (titleWikiTimer) clearTimeout(titleWikiTimer);
           titleWikiTimer = setTimeout(() => {
             titleWikiTimer = null;
             const step = draft.step || 1;
             if (step !== 2) return;
-            const q = (els.titleInput.value || "").trim();
-            if (q.length < 2) {
+            const raw = (els.titleInput.value || "").trim();
+            const wikiQ = wikiQueryForTitleInput(raw);
+            if (wikiQ.length < 2) {
               titleRemoteSuggestions = [];
               refreshTitleSuggest();
               return;
             }
             if (titleWikiAbort) titleWikiAbort.abort();
             titleWikiAbort = new AbortController();
-            fetchWikiTitleSuggestions(q, titleWikiAbort.signal)
+            fetchWikiTitleSuggestions(wikiQ, titleWikiAbort.signal)
               .then((titles) => {
-                titleRemoteSuggestions = titles;
+                titleRemoteSuggestions = filterWikiTitlesForContext(titles, raw);
                 refreshTitleSuggest();
               })
               .catch((e) => {
