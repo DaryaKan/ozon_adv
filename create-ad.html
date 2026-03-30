@@ -5,9 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="back-btn-visible-kartina-tags" />
+    <meta name="prototype-build" content="cache-20260330-1" />
     <title>Создать объявление — Ozon ADV</title>
+    <script>
+      (function () {
+        var NEED = "cache-20260330-1";
+        try {
+          var p = new URLSearchParams(location.search);
+          if (p.get("_p") === NEED) return;
+          p.set("_p", NEED);
+          location.replace(location.pathname + "?" + p.toString() + location.hash);
+        } catch (e) {}
+      })();
+    </script>
 
     <style>
       @font-face {
@@ -543,6 +555,14 @@
         gap: 10px;
       }
 
+      .footerProto {
+        margin: 0;
+        font-size: 11px;
+        line-height: 1.4;
+        color: rgba(0, 0, 0, 0.45);
+        text-align: center;
+      }
+
       .btn {
         appearance: none;
         border: 0;
@@ -892,6 +912,7 @@
 
       <footer class="footer">
         <button class="btn" id="nextBtn" type="button">Далее</button>
+        <p class="footerProto" id="footerProto" aria-live="polite"></p>
       </footer>
     </div>
 
@@ -993,7 +1014,10 @@
           if (params.get("new") === "1") {
             localStorage.removeItem(DRAFT_KEY);
             draft = defaultDraft();
-            history.replaceState(null, "", window.location.pathname);
+            params.delete("new");
+            params.delete("v");
+            const qs = params.toString();
+            history.replaceState(null, "", window.location.pathname + (qs ? "?" + qs : "") + location.hash);
           } else {
             draft = loadDraft();
           }
@@ -1596,6 +1620,15 @@
           renderPills(els.adTypePills, draft.adType);
           renderPills(els.contactPills, draft.contact);
           renderProductCard();
+
+          const fp = document.getElementById("footerProto");
+          const metaBuild = document.querySelector('meta[name="prototype-build"]');
+          if (fp && metaBuild) {
+            fp.textContent =
+              "Версия: " +
+              metaBuild.content +
+              " · если экран не обновился: откройте в режиме инкогнито или обновите с принудительным сбросом кэша (⌘⇧R / Ctrl+Shift+R).";
+          }
         }
 
         // Навигация
