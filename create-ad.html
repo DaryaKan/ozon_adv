@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="pages-20260330-6" />
+    <meta name="prototype-build" content="main-home-cover-v1" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "pages-20260330-6";
+        var NEED = "main-home-cover-v1";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -336,7 +336,6 @@
       }
 
       .step[data-step="2"] .card .input,
-      .step[data-step="3"] .card .input,
       .step[data-step="6"] .card .textarea,
       .step[data-step="7"] .card .input,
       .step[data-step="8"] .card .input {
@@ -347,7 +346,6 @@
       }
 
       .step[data-step="2"] .card .input:focus,
-      .step[data-step="3"] .card .input:focus,
       .step[data-step="6"] .card .textarea:focus,
       .step[data-step="7"] .card .input:focus,
       .step[data-step="8"] .card .input:focus {
@@ -357,7 +355,6 @@
       }
 
       .step[data-step="2"] .card .input:focus-visible,
-      .step[data-step="3"] .card .input:focus-visible,
       .step[data-step="6"] .card .textarea:focus-visible,
       .step[data-step="7"] .card .input:focus-visible,
       .step[data-step="8"] .card .input:focus-visible {
@@ -366,9 +363,9 @@
       }
 
       .categoryTreeBlock {
-        margin-top: 12px;
+        margin-top: 0;
         display: grid;
-        gap: 8px;
+        gap: 0;
         border-radius: var(--radiusMd, 10px);
         padding: 12px;
         background: var(--ozBGSecondary, rgba(0, 0, 0, 0.04));
@@ -388,6 +385,39 @@
 
       .step[data-step="3"] .treeItem:last-child {
         border-bottom: 0;
+      }
+
+      .treeItemBranch {
+        cursor: default;
+        pointer-events: none;
+      }
+
+      .treeItemBranch .treeItemLabel {
+        font-weight: 650;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .treeItemLeaf {
+        cursor: pointer;
+      }
+
+      .treeItemLeaf:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+        outline-offset: -2px;
+      }
+
+      .treeItemLeaf .chevOk {
+        color: var(--muted);
+        font-weight: 800;
+      }
+
+      .treeItemLeaf.treeItem--selected .chevOk {
+        color: #16a34a;
+      }
+
+      .chevBranch {
+        width: 8px;
       }
 
       .step[data-step="4"] .pill,
@@ -830,19 +860,8 @@
         <!-- 3. Категория -->
         <section class="step" data-step="3">
           <div class="card">
-            <div class="field">
-              <div class="label">Поиск категории</div>
-              <input
-                class="input"
-                id="categorySearch"
-                placeholder="Начните вводить название раздела"
-                autocomplete="off"
-              />
-            </div>
-
             <div class="categoryTreeBlock">
               <div class="tree" id="categoryTree"></div>
-              <div class="hint" id="categoryPathHint"></div>
             </div>
           </div>
         </section>
@@ -1001,9 +1020,7 @@
           titleInput: document.getElementById("titleInput"),
           titleSuggest: document.getElementById("titleSuggest"),
 
-          categorySearch: document.getElementById("categorySearch"),
           categoryTree: document.getElementById("categoryTree"),
-          categoryPathHint: document.getElementById("categoryPathHint"),
 
           conditionPills: document.getElementById("conditionPills"),
           adTypePills: document.getElementById("adTypePills"),
@@ -1046,6 +1063,7 @@
         const defaultDraft = () => ({
           step: 1,
           media: [],
+          coverDataUrl: "",
           title: "",
           categoryPath: [],
           condition: "",
@@ -1073,7 +1091,6 @@
 
         let draft;
         let mediaObjectUrls = [];
-        let lastRenderedStep = 1;
 
         function loadDraft() {
           try {
@@ -1108,8 +1125,51 @@
             draft.categoryPath && draft.categoryPath.length
               ? categoryPathNames(draft.categoryPath).join(" → ")
               : "";
-          const stored = { ...draft, media: [], categoryPathLabel };
+          const stored = {
+            ...draft,
+            media: [],
+            categoryPathLabel,
+            coverDataUrl: draft.coverDataUrl || "",
+          };
           localStorage.setItem(DRAFT_KEY, JSON.stringify(stored));
+        }
+
+        function refreshDraftCoverThumbnail() {
+          const first = (draft.media || []).find((m) => m.type && m.type.startsWith("image/"));
+          if (!first?.url) {
+            draft.coverDataUrl = "";
+            persistDraftToStorage();
+            return;
+          }
+          const img = new Image();
+          img.onload = () => {
+            try {
+              const maxW = 560;
+              const w = img.naturalWidth || img.width;
+              const h = img.naturalHeight || img.height;
+              if (!w || !h) {
+                draft.coverDataUrl = "";
+                persistDraftToStorage();
+                return;
+              }
+              const scale = Math.min(1, maxW / w);
+              const cw = Math.round(w * scale);
+              const ch = Math.round(h * scale);
+              const c = document.createElement("canvas");
+              c.width = cw;
+              c.height = ch;
+              c.getContext("2d").drawImage(img, 0, 0, cw, ch);
+              draft.coverDataUrl = c.toDataURL("image/jpeg", 0.82);
+            } catch {
+              draft.coverDataUrl = "";
+            }
+            persistDraftToStorage();
+          };
+          img.onerror = () => {
+            draft.coverDataUrl = "";
+            persistDraftToStorage();
+          };
+          img.src = first.url;
         }
 
         function syncDraftFromDom() {
@@ -2177,22 +2237,19 @@
           return names;
         }
 
-        function getChildrenForPath(path) {
-          const pth = normalizeCategoryPath(path);
-          if (!pth.length) return categoryRoot;
-          let p = pth.slice();
-          let node = findNodeByPath(p);
-          if (!node) return categoryRoot;
-          // Если путь указывает на лист (или устаревший id), поднимаемся к ближайшему предку с дочерними узлами — иначе список пустой и кажется, что «категории не подтянулись».
-          while (p.length && node && (!node.children || !node.children.length)) {
-            p = p.slice(0, -1);
-            node = p.length ? findNodeByPath(p) : null;
-          }
-          if (!p.length) return categoryRoot;
-          node = findNodeByPath(p);
-          return node && node.children && node.children.length ? node.children : categoryRoot;
+        function escapeHtml(str) {
+          return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/"/g, "&quot;");
         }
 
+        function pathsEqualCategory(a, b) {
+          const aa = normalizeCategoryPath(a);
+          const bb = normalizeCategoryPath(b);
+          if (aa.length !== bb.length) return false;
+          return aa.every((id, i) => id === bb[i]);
+        }
 
         function renderTitleSuggest() {
           const list = buildTitleSuggestions(draft.title);
@@ -2205,43 +2262,37 @@
         }
 
         function renderCategoryTree() {
-          const q = (els.categorySearch.value || "").trim().toLowerCase();
           const catPath = normalizeCategoryPath(draft.categoryPath);
-          const baseChildren = getChildrenForPath(catPath);
-          let children = baseChildren;
-          let filterEmpty = false;
-          if (q) {
-            const filtered = baseChildren.filter((c) => c.name.toLowerCase().includes(q));
-            if (filtered.length) {
-              children = filtered;
-            } else {
-              children = baseChildren;
-              filterEmpty = true;
+          const chunks = [];
+
+          function walk(nodes, depth, parentPath) {
+            for (const n of nodes) {
+              const path = [...parentPath, n.id];
+              const hasKids = n.children && n.children.length;
+              const pad = 12 + depth * 16;
+              if (hasKids) {
+                chunks.push(
+                  `<div class="treeItem treeItemBranch" style="padding-left:${pad}px" role="presentation">
+                    <div class="treeItemLabel">${escapeHtml(n.name)}</div>
+                    <div class="chev chevBranch" aria-hidden="true"></div>
+                  </div>`
+                );
+                walk(n.children, depth + 1, path);
+              } else {
+                const selected = pathsEqualCategory(path, catPath);
+                const pathStr = path.join(",");
+                chunks.push(
+                  `<div class="treeItem treeItemLeaf${selected ? " treeItem--selected" : ""}" style="padding-left:${pad}px" data-tree="leaf" data-path="${pathStr}" role="button" tabindex="0">
+                    <div class="treeItemLabel">${escapeHtml(n.name)}</div>
+                    <div class="chev chevOk" aria-hidden="true">✓</div>
+                  </div>`
+                );
+              }
             }
           }
-          const names = categoryPathNames(catPath);
-          let hint = names.length ? `Выбрано: ${names.join(" → ")}` : "Не выбрано";
-          if (filterEmpty && q) {
-            hint += " · По фильтру ничего не найдено — показаны все подразделы уровня";
-          }
-          els.categoryPathHint.textContent = hint;
 
-          const items = [];
-          if (catPath.length) {
-            items.push(
-              `<div class="treeItem" data-tree="up"><div>← Назад</div><div class="chev"></div></div>`
-            );
-          }
-          for (const c of children) {
-            const hasKids = c.children && c.children.length;
-            items.push(
-              `<div class="treeItem" data-tree="node" data-id="${c.id}">
-                <div>${c.name}</div>
-                <div class="chev">${hasKids ? "›" : "✓"}</div>
-              </div>`
-            );
-          }
-          els.categoryTree.innerHTML = items.join("");
+          walk(categoryRoot, 0, []);
+          els.categoryTree.innerHTML = chunks.join("");
         }
 
         function renderMedia() {
@@ -2352,10 +2403,6 @@
 
         function render() {
           const step = draft.step || 1;
-          if (step === 3 && lastRenderedStep !== 3) {
-            els.categorySearch.value = "";
-          }
-          lastRenderedStep = step;
           els.stepTitle.textContent = stepTitles[step] || "Создать объявление";
           els.stepSubtitle.textContent = `Шаг ${step} из ${TOTAL}`;
           els.progressBar.style.width = `${Math.round(((step - 1) / (TOTAL - 1)) * 100)}%`;
@@ -2380,7 +2427,6 @@
           els.titleInput.value = draft.title || "";
           els.descInput.value = draft.description || "";
           els.priceInput.value = draft.price || "";
-          els.categorySearch.value = els.categorySearch.value || "";
 
           renderTitleSuggest();
           renderCategoryTree();
@@ -2448,6 +2494,7 @@
             });
           }
           saveDraft({ media: combined });
+          refreshDraftCoverThumbnail();
           els.mediaInput.value = "";
         });
 
@@ -2467,6 +2514,7 @@
               if (j !== -1) mediaObjectUrls.splice(j, 1);
             }
             saveDraft({ media: list });
+            refreshDraftCoverThumbnail();
             return;
           }
           const btn = e.target.closest("#mediaAddBtn");
@@ -2486,26 +2534,20 @@
           saveDraft({ title: val });
         });
 
-        // Step 3 category
-        els.categorySearch.addEventListener("input", () => renderCategoryTree());
-
+        // Step 3 category — полное дерево, выбор только листьев
         els.categoryTree.addEventListener("click", (e) => {
-          const item = e.target.closest(".treeItem");
+          const item = e.target.closest(".treeItemLeaf");
           if (!item) return;
-          if (item.dataset.tree === "up") {
-            saveDraft({ categoryPath: draft.categoryPath.slice(0, -1) });
-            return;
-          }
-          if (item.dataset.tree === "node") {
-            const id = item.dataset.id;
-            const nextPath = [...draft.categoryPath, id];
-            const node = findNodeByPath(nextPath);
-            if (node && node.children && node.children.length) {
-              saveDraft({ categoryPath: nextPath });
-            } else {
-              saveDraft({ categoryPath: nextPath });
-            }
-          }
+          const path = (item.dataset.path || "").split(",").filter(Boolean);
+          saveDraft({ categoryPath: path });
+        });
+        els.categoryTree.addEventListener("keydown", (e) => {
+          if (e.key !== "Enter" && e.key !== " ") return;
+          const item = e.target.closest(".treeItemLeaf");
+          if (!item) return;
+          e.preventDefault();
+          const path = (item.dataset.path || "").split(",").filter(Boolean);
+          saveDraft({ categoryPath: path });
         });
 
         // Step 4 condition
