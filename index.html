@@ -43,99 +43,13 @@
         max-width: min(200px, 70vw);
         display: block;
       }
-      .draftCard {
-        width: min(320px, 90vw);
-        max-width: 100%;
-        border-radius: 12px;
-        border: 1px solid rgba(0, 0, 0, 0.12);
-        background: #fff;
-        overflow: hidden;
-        text-align: left;
-      }
-      .draftCardLink {
-        display: flex;
-        flex-direction: row;
-        align-items: stretch;
-        gap: 0;
-        min-height: 0;
-        text-decoration: none;
-        color: inherit;
-        cursor: pointer;
-      }
-      .draftCardLink:hover {
-        background: rgba(0, 0, 0, 0.02);
-      }
-      .draftCardLink:focus-visible {
-        outline: 2px solid rgba(0, 91, 255, 0.45);
-        outline-offset: 2px;
-      }
-      .draftCover {
-        position: relative;
-        flex: 0 0 auto;
-        width: 104px;
-        min-width: 88px;
-        max-width: 40%;
-        aspect-ratio: 3 / 4;
-        background: #e8e8e8;
-        overflow: hidden;
-        align-self: flex-start;
-      }
-      .draftCoverImg {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-      }
-      .draftCoverPlaceholder {
-        position: absolute;
-        inset: 0;
-        display: grid;
-        place-items: center;
-        background: #e8e8e8;
-        pointer-events: none;
-      }
-      .draftCoverPlaceholder svg {
-        width: 40%;
-        max-width: 96px;
-        height: auto;
-      }
-      .draftCardBody {
-        flex: 1 1 0;
-        min-width: 0;
-        display: grid;
-        gap: 8px;
-        padding: 12px 14px;
-        align-content: start;
-      }
-      .draftBadge {
-        display: inline-block;
-        align-self: start;
-        font-size: 12px;
-        font-weight: 600;
-        line-height: 1.2;
-        padding: 2px 6px;
-        border-radius: 6px;
-        background: rgba(0, 0, 0, 0.06);
-        color: #000;
-      }
-      .draftTitle {
-        font-size: 16px;
-        font-weight: 600;
-        line-height: 1.35;
-        color: #0a0a0a;
-      }
-      .draftLines {
-        display: grid;
-        gap: 4px;
+      .homeHint {
+        margin: -6px 0 0;
+        max-width: min(320px, 90vw);
         font-size: 13px;
-        line-height: 1.35;
-        color: rgba(0, 0, 0, 0.56);
-      }
-      .draftLines strong {
-        font-weight: 600;
-        color: #0a0a0a;
+        line-height: 1.4;
+        color: rgba(0, 0, 0, 0.5);
+        text-align: center;
       }
       .btn {
         appearance: none;
@@ -164,6 +78,28 @@
         outline: 3px solid rgba(0, 91, 255, 0.35);
         outline-offset: 2px;
       }
+      .entryLink {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: min(320px, 90vw);
+        max-width: 100%;
+        padding: 11px 16px;
+        font: 600 15px/1.2 "Onest", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        color: #005bff;
+        text-decoration: none;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 91, 255, 0.22);
+        background: rgba(0, 91, 255, 0.07);
+        box-sizing: border-box;
+      }
+      .entryLink:hover {
+        background: rgba(0, 91, 255, 0.11);
+      }
+      .entryLink:focus-visible {
+        outline: 3px solid rgba(0, 91, 255, 0.35);
+        outline-offset: 2px;
+      }
     </style>
   </head>
   <body>
@@ -175,117 +111,11 @@
         aria-label="Ozon logo"
       />
 
-      <div class="draftCard" id="draftCard" hidden>
-        <a class="draftCardLink" id="draftCardLink" href="./create-ad.html?_p=free-osm-map-v9" aria-label="Продолжить черновик объявления">
-          <div class="draftCover">
-            <img class="draftCoverImg" id="draftCoverImg" alt="" hidden decoding="async" />
-            <div class="draftCoverPlaceholder" id="draftCoverPlaceholder" aria-hidden="true">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="96" height="96" aria-hidden="true">
-                <path
-                  class="phIcon"
-                  fill="#8f949e"
-                  d="M19 5H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 12H5V7h14v10zm-5.5-2.5l2.5 3.01L17.5 18H19l-3-4-2.5 3.01L12 14l-4 5h10l-3.5-4.5zM9 9c.55 0 1-.45 1-1s-.45-1-1-1-1 .45-1 1 .45 1 1 1z"
-                />
-              </svg>
-            </div>
-          </div>
-          <div class="draftCardBody">
-            <span class="draftBadge">Черновик</span>
-            <div class="draftTitle" id="draftCardTitle">Без названия</div>
-            <div class="draftLines" id="draftCardLines"></div>
-          </div>
-        </a>
-      </div>
+      <a class="entryLink" href="./my-ads.html" id="linkMyAds" aria-label="Мои объявления">Мои объявления</a>
+      <p class="homeHint">Черновик и список объявлений — в разделе «Мои объявления».</p>
 
-      <a class="btn" href="./create-ad.html?new=1&_p=free-osm-map-v9" id="btnCreateAd" aria-label="Создать новое объявление">Создать объявление</a>
+      <a class="btn" href="./create-ad.html?new=1&_p=free-osm-map-v17" id="btnCreateAd" aria-label="Создать новое объявление">Создать объявление</a>
       <a class="btn btnSecondary" href="./ui-kit.html" aria-label="Open UI kit page">UI kit</a>
     </div>
-    <script>
-      (function () {
-        var DRAFT_KEY = "ozon_adv_create_ad_draft_v1";
-
-        function isDraftEmpty(d) {
-          if (!d) return true;
-          var cov = (d.coverDataUrl || "").trim();
-          if (cov.length > 80 && cov.indexOf("data:image") === 0) return false;
-          if ((d.step || 1) > 1) return false;
-          if (d.condition || d.adType || d.contact) return false;
-          if ((d.title || "").trim()) return false;
-          if (Array.isArray(d.categoryPath) && d.categoryPath.length) return false;
-          if ((d.description || "").trim()) return false;
-          if (String(d.price || "").trim()) return false;
-          if ((d.addressLine || "").trim()) return false;
-          return true;
-        }
-
-        function formatPrice(v) {
-          var s = String(v || "").replace(/[^\d]/g, "");
-          if (!s) return "";
-          var n = parseInt(s, 10);
-          if (!n) return "";
-          return new Intl.NumberFormat("ru-RU").format(n) + " ₽";
-        }
-
-        function renderDraftCard() {
-          var wrap = document.getElementById("draftCard");
-          var titleEl = document.getElementById("draftCardTitle");
-          var linesEl = document.getElementById("draftCardLines");
-          var imgEl = document.getElementById("draftCoverImg");
-          var phEl = document.getElementById("draftCoverPlaceholder");
-          var raw = null;
-          try {
-            raw = localStorage.getItem(DRAFT_KEY);
-          } catch (e) {
-            return;
-          }
-          if (!raw) {
-            wrap.hidden = true;
-            return;
-          }
-          var d;
-          try {
-            d = JSON.parse(raw);
-          } catch (e) {
-            wrap.hidden = true;
-            return;
-          }
-          if (isDraftEmpty(d)) {
-            wrap.hidden = true;
-            return;
-          }
-          wrap.hidden = false;
-          var cover = (d.coverDataUrl || "").trim();
-          if (cover.length > 0 && cover.indexOf("data:image") === 0) {
-            imgEl.src = cover;
-            imgEl.hidden = false;
-            phEl.hidden = true;
-          } else {
-            imgEl.removeAttribute("src");
-            imgEl.hidden = true;
-            phEl.hidden = false;
-          }
-          titleEl.textContent = (d.title || "").trim() || "Без названия";
-          var lines = [];
-          var step = d.step || 1;
-          lines.push("Шаг " + step + " из 10");
-          var priceStr = formatPrice(d.price);
-          if (priceStr) lines.push(priceStr);
-          var cat = (d.categoryPathLabel || "").trim();
-          if (cat) lines.push(cat);
-          var desc = (d.description || "").trim();
-          if (desc) lines.push(desc.length > 80 ? desc.slice(0, 80) + "…" : desc);
-          if (d.condition) lines.push(d.condition === "new" ? "Состояние: новое" : "Состояние: б/у");
-          if (d.addressLine && String(d.addressLine).trim()) lines.push(String(d.addressLine).trim());
-          linesEl.textContent = "";
-          lines.forEach(function (line) {
-            var row = document.createElement("div");
-            row.textContent = line;
-            linesEl.appendChild(row);
-          });
-        }
-
-        renderDraftCard();
-      })();
-    </script>
   </body>
 </html>

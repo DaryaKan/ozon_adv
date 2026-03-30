@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="free-osm-map-v9" />
+    <meta name="prototype-build" content="free-osm-map-v17" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "free-osm-map-v9";
+        var NEED = "free-osm-map-v17";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -371,6 +371,26 @@
         outline-offset: 2px;
       }
 
+      .priceInputRow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        min-width: 0;
+      }
+
+      .priceInputRow .input {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .priceCurrency {
+        flex-shrink: 0;
+        font: 400 16px/1.35 var(--font);
+        color: var(--text);
+        user-select: none;
+      }
+
       .descGenRow {
         display: flex;
         flex-direction: column;
@@ -405,10 +425,6 @@
 
       .step[data-step="3"] .treeItem:last-child {
         border-bottom: 0;
-      }
-
-      .step[data-step="3"] .treeItem.treeItem--selected {
-        background: rgba(255, 255, 255, 0.92);
       }
 
       .step[data-step="3"] .treeItem.treeItem--selected .chev {
@@ -501,6 +517,10 @@
         border: 1px solid var(--stroke);
         overflow: hidden;
         z-index: 0;
+      }
+
+      #addressMap .leafletMap {
+        margin-top: 8px;
       }
 
       .leafletMap .leaflet-control-container a {
@@ -922,9 +942,28 @@
 
       .qtyRow {
         display: grid;
-        grid-template-columns: 1fr auto auto;
+        grid-template-columns: auto 1fr auto;
         gap: 10px;
         align-items: center;
+      }
+
+      .qtyRow .iconBtn {
+        font-size: 22px;
+        font-weight: 650;
+        line-height: 1;
+        min-width: 44px;
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .qtyRow .inputQty {
+        width: 100%;
+        max-width: 72px;
+        min-width: 0;
+        justify-self: center;
+        text-align: center;
+        padding-left: 8px;
+        padding-right: 8px;
       }
 
       .step {
@@ -939,19 +978,33 @@
         box-sizing: border-box;
       }
 
-      .productCard {
+      .productCard--preview {
         border: 1px solid var(--stroke);
-        border-radius: 16px;
+        border-radius: 12px;
         overflow: hidden;
         background: #fff;
+        max-width: 100%;
+      }
+
+      .productMediaWrap {
+        position: relative;
+        background: rgba(0, 0, 0, 0.04);
       }
 
       .productMedia {
         aspect-ratio: 3 / 4;
-        background: rgba(0, 0, 0, 0.05);
         display: grid;
         place-items: center;
         overflow: hidden;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .productVideoPlaceholder {
+        padding: 12px;
+        font-size: 13px;
+        color: var(--muted);
+        text-align: center;
       }
 
       .productMedia img {
@@ -961,28 +1014,129 @@
         display: block;
       }
 
-      .productBody {
-        padding: 14px;
+      .productFav {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 2;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
         display: grid;
-        gap: 8px;
+        place-items: center;
+        cursor: pointer;
+        color: rgba(0, 0, 0, 0.72);
+      }
+
+      .productFav:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+        outline-offset: 2px;
+      }
+
+      .productBody {
+        padding: 10px 12px 12px;
+        display: grid;
+        gap: 4px;
+      }
+
+      .productPriceRow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 6px 10px;
+        line-height: 1.2;
+      }
+
+      .productPriceCurrent {
+        font-size: 17px;
+        font-weight: 700;
+        color: #00a046;
+        letter-spacing: -0.02em;
+      }
+
+      .productPriceOld {
+        font-size: 13px;
+        font-weight: 400;
+        color: rgba(0, 0, 0, 0.45);
+        text-decoration: line-through;
+      }
+
+      .productDiscount {
+        font-size: 13px;
+        font-weight: 600;
+        color: #e31235;
+      }
+
+      .productStock {
+        font-size: 12px;
+        font-weight: 500;
+        color: #d633b8;
+        line-height: 1.3;
       }
 
       .productTitle {
-        font-size: 16px;
+        margin: 2px 0 0;
+        padding: 0;
+        font-size: 14px;
         font-weight: 400;
         line-height: 1.35;
+        color: var(--text);
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
       }
 
-      .price {
-        font-size: 18px;
-        font-weight: 850;
+      .productRatingRow {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 4px 6px;
+        margin-top: 4px;
+        font-size: 12px;
+        line-height: 1.3;
+        color: rgba(0, 0, 0, 0.56);
       }
 
-      .kvs {
-        display: grid;
-        gap: 6px;
+      .productRatingStar {
+        color: #ffb800;
         font-size: 13px;
-        color: var(--muted);
+        line-height: 1;
+      }
+
+      .productRatingValue {
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .productReviews {
+        color: rgba(0, 0, 0, 0.45);
+      }
+
+      .productBrandMark {
+        margin-left: auto;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+      }
+
+      .productBrandMark svg {
+        display: block;
+      }
+
+      .productDraftMeta {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        display: grid;
+        gap: 4px;
+        font-size: 12px;
+        line-height: 1.35;
+        color: rgba(0, 0, 0, 0.5);
       }
     </style>
   </head>
@@ -1147,13 +1301,16 @@
         <section class="step" data-step="8">
           <div class="card">
             <div class="field">
-              <input
-                class="input"
-                id="priceInput"
-                inputmode="numeric"
-                placeholder="Сумма в ₽"
-                aria-label="Сумма в рублях"
-              />
+              <div class="priceInputRow">
+                <input
+                  class="input"
+                  id="priceInput"
+                  inputmode="numeric"
+                  placeholder="0"
+                  aria-label="Сумма в рублях"
+                />
+                <span class="priceCurrency" aria-hidden="true">₽</span>
+              </div>
             </div>
 
             <div class="field">
@@ -1176,15 +1333,15 @@
 
             <div class="field" id="qtyField" style="display:none">
               <div class="qtyRow">
+                <button class="iconBtn" id="qtyMinus" type="button" aria-label="Уменьшить количество">−</button>
                 <input
-                  class="input"
+                  class="input inputQty"
                   id="qtyInput"
                   inputmode="numeric"
                   placeholder="Количество"
                   aria-label="Количество товара"
                 />
-                <button class="iconBtn" id="qtyMinus" type="button" aria-label="Minus">−</button>
-                <button class="iconBtn" id="qtyPlus" type="button" aria-label="Plus">+</button>
+                <button class="iconBtn" id="qtyPlus" type="button" aria-label="Увеличить количество">+</button>
               </div>
             </div>
           </div>
@@ -1218,12 +1375,39 @@
           <div class="card">
             <div class="hint">Проверь данные перед публикацией.</div>
 
-            <div class="productCard">
-              <div class="productMedia" id="productMedia">Нет фото</div>
+            <div class="productCard productCard--preview">
+              <div class="productMediaWrap">
+                <div class="productMedia" id="productMedia">Нет фото</div>
+                <button type="button" class="productFav" id="productFav" aria-label="В избранное">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path
+                      d="M12 20.5l-1.1-1C5.9 14.8 3 12 3 8.5 3 6 5 4 7.5 4c1.4 0 2.7.7 3.5 1.8C11.8 4.7 13.1 4 14.5 4 17 4 19 6 19 8.5c0 3.5-2.9 6.3-7.9 11L12 20.5z"
+                      stroke="currentColor"
+                      stroke-width="1.6"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </button>
+              </div>
               <div class="productBody">
-                <div class="price" id="productPrice">— ₽</div>
-                <div class="productTitle" id="productTitle">Без названия</div>
-                <div class="kvs" id="productMeta"></div>
+                <div class="productPriceRow">
+                  <span class="productPriceCurrent" id="productPrice">— ₽</span>
+                  <span class="productPriceOld" id="productPriceOld" hidden></span>
+                  <span class="productDiscount" id="productDiscount" hidden></span>
+                </div>
+                <div class="productStock" id="productStockLine" hidden></div>
+                <h3 class="productTitle" id="productTitle">Без названия</h3>
+                <div class="productRatingRow">
+                  <span class="productRatingStar" aria-hidden="true">★</span>
+                  <span class="productRatingValue" id="productRatingValue">4.9</span>
+                  <span class="productReviews" id="productReviews">14 290</span>
+                  <span class="productBrandMark" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="12" cy="12" r="10" fill="#005bff" />
+                    </svg>
+                  </span>
+                </div>
+                <div class="productDraftMeta" id="productMeta"></div>
               </div>
             </div>
           </div>
@@ -1237,9 +1421,10 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+    <script src="./ad-storage.js"></script>
     <script>
       (function () {
-        const DRAFT_KEY = "ozon_adv_create_ad_draft_v1";
+        const S = window.OzonAdvAdStorage;
         const TOTAL = 10;
 
         const els = {
@@ -1283,7 +1468,12 @@
 
           productMedia: document.getElementById("productMedia"),
           productPrice: document.getElementById("productPrice"),
+          productPriceOld: document.getElementById("productPriceOld"),
+          productDiscount: document.getElementById("productDiscount"),
+          productStockLine: document.getElementById("productStockLine"),
           productTitle: document.getElementById("productTitle"),
+          productRatingValue: document.getElementById("productRatingValue"),
+          productReviews: document.getElementById("productReviews"),
           productMeta: document.getElementById("productMeta"),
         };
 
@@ -1341,7 +1531,7 @@
 
         function loadDraft() {
           try {
-            const raw = localStorage.getItem(DRAFT_KEY);
+            const raw = S.getDraftRaw();
             if (!raw) return defaultDraft();
             const parsed = JSON.parse(raw);
             delete parsed.media;
@@ -1356,7 +1546,7 @@
         function initDraft() {
           const params = new URLSearchParams(window.location.search);
           if (params.get("new") === "1") {
-            localStorage.removeItem(DRAFT_KEY);
+            S.removeDraft();
             draft = defaultDraft();
             params.delete("new");
             params.delete("v");
@@ -1378,7 +1568,7 @@
             categoryPathLabel,
             coverDataUrl: draft.coverDataUrl || "",
           };
-          localStorage.setItem(DRAFT_KEY, JSON.stringify(stored));
+          S.setDraftRaw(JSON.stringify(stored));
         }
 
         function refreshDraftCoverThumbnail() {
@@ -1439,7 +1629,7 @@
         }
 
         function reset() {
-          localStorage.removeItem(DRAFT_KEY);
+          S.removeDraft();
           draft = defaultDraft();
           cleanupMediaUrls();
           render();
@@ -1458,7 +1648,15 @@
         function formatRUB(v) {
           const n = Number(String(v).replace(/[^\d]/g, ""));
           if (!n) return "";
-          return new Intl.NumberFormat("ru-RU").format(n);
+          const thin = "\u202f";
+          return new Intl.NumberFormat("ru-RU").format(n).replace(/[\s\u00a0\u202f]+/g, thin);
+        }
+
+        function formatIntThinSpace(v) {
+          const n = Number(String(v).replace(/[^\d]/g, ""));
+          if (!n) return "";
+          const thin = "\u202f";
+          return new Intl.NumberFormat("ru-RU").format(n).replace(/[\s\u00a0\u202f]+/g, thin);
         }
 
         function pickPill(container, value, key) {
@@ -5080,15 +5278,43 @@
           if (media0 && media0.type.startsWith("image/")) {
             els.productMedia.innerHTML = `<img src="${media0.url}" alt="" />`;
           } else if (media0 && media0.type.startsWith("video/")) {
-            els.productMedia.textContent = "Видео обложкой (в прототипе)";
+            els.productMedia.innerHTML = `<span class="productVideoPlaceholder">Видео обложкой (в прототипе)</span>`;
           } else {
             els.productMedia.textContent = "Нет фото";
           }
 
           els.productTitle.textContent = draft.title?.trim() || "Без названия";
 
-          const priceText = draft.price ? `${formatRUB(draft.price)} ₽` : "— ₽";
-          els.productPrice.textContent = priceText;
+          const priceNum = Number(String(draft.price || "").replace(/[^\d]/g, ""));
+          if (priceNum) {
+            const cur = formatRUB(draft.price);
+            els.productPrice.textContent = `${cur}\u202f₽`;
+            const listPrice = Math.ceil(priceNum * 1.55);
+            if (listPrice > priceNum) {
+              els.productPriceOld.textContent = `${formatRUB(String(listPrice))}\u202f₽`;
+              els.productPriceOld.hidden = false;
+              const pct = Math.round((1 - priceNum / listPrice) * 100);
+              els.productDiscount.textContent = `−${pct}%`;
+              els.productDiscount.hidden = false;
+            } else {
+              els.productPriceOld.hidden = true;
+              els.productDiscount.hidden = true;
+            }
+          } else {
+            els.productPrice.textContent = "— ₽";
+            els.productPriceOld.hidden = true;
+            els.productDiscount.hidden = true;
+          }
+
+          if (draft.qtyEnabled && Number(draft.qty) > 0) {
+            els.productStockLine.textContent = `${draft.qty} шт осталось`;
+            els.productStockLine.hidden = false;
+          } else {
+            els.productStockLine.hidden = true;
+          }
+
+          els.productRatingValue.textContent = "4.9";
+          els.productReviews.textContent = formatIntThinSpace(14290);
 
           const lines = [];
           const cat = categoryPathNames(draft.categoryPath || []).join(" → ");
@@ -5110,7 +5336,13 @@
               }`
             );
           if (draft.qtyEnabled) lines.push(`Количество: ${draft.qty || 1}`);
-          els.productMeta.innerHTML = lines.map((x) => `<div>${x}</div>`).join("");
+          if (lines.length) {
+            els.productMeta.hidden = false;
+            els.productMeta.innerHTML = lines.map((x) => `<div>${escapeHtml(x)}</div>`).join("");
+          } else {
+            els.productMeta.hidden = true;
+            els.productMeta.innerHTML = "";
+          }
         }
 
         function render() {
@@ -5169,12 +5401,35 @@
           }
         }
 
+        function snapshotPublishedFromDraft() {
+          syncDraftFromDom();
+          const categoryPathLabel =
+            draft.categoryPath && draft.categoryPath.length
+              ? categoryPathNames(draft.categoryPath).join(" → ")
+              : "";
+          return {
+            id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
+            title: (draft.title || "").trim() || "Без названия",
+            price: draft.price || "",
+            categoryPathLabel,
+            description: (draft.description || "").trim(),
+            addressLine: (draft.addressLine || "").trim(),
+            condition: draft.condition || "",
+            adType: draft.adType || "",
+            contact: draft.contact || "",
+            qtyEnabled: !!draft.qtyEnabled,
+            qty: Number(draft.qty) > 0 ? Number(draft.qty) : 1,
+            coverDataUrl: (draft.coverDataUrl || "").trim(),
+            publishedAt: Date.now(),
+          };
+        }
+
         // Навигация
         els.nextBtn.addEventListener("click", () => {
           if ((draft.step || 1) >= TOTAL) {
-            syncDraftFromDom();
-            localStorage.removeItem(DRAFT_KEY);
-            window.location.href = "./index.html";
+            S.prependPublished(snapshotPublishedFromDraft());
+            S.removeDraft();
+            window.location.href = "./my-ads.html";
             return;
           }
           setStep((draft.step || 1) + 1);
