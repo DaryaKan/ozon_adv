@@ -316,6 +316,34 @@
         position: relative;
       }
 
+      .mediaRemove {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        z-index: 3;
+        width: 22px;
+        height: 22px;
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.92);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        color: #001a34;
+      }
+
+      .mediaRemove svg {
+        width: 8px;
+        height: 8px;
+        display: block;
+      }
+
+      .mediaRemove:focus-visible {
+        outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
+        outline-offset: 1px;
+      }
+
       .mediaTileEmpty {
         background: transparent;
         border: 2px dashed rgba(0, 0, 0, 0.12);
@@ -355,6 +383,7 @@
         position: absolute;
         top: 8px;
         left: 8px;
+        z-index: 2;
         box-sizing: border-box;
         background: rgba(0, 0, 0, 0.6);
         color: #fff;
@@ -805,15 +834,21 @@
             const raw = localStorage.getItem(DRAFT_KEY);
             if (!raw) return defaultDraft();
             const parsed = JSON.parse(raw);
-            return { ...defaultDraft(), ...parsed };
+            delete parsed.media;
+            return { ...defaultDraft(), ...parsed, media: [] };
           } catch {
             return defaultDraft();
           }
         }
 
+        function persistDraftToStorage() {
+          const stored = { ...draft, media: [] };
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(stored));
+        }
+
         function saveDraft(patch) {
           draft = { ...draft, ...patch };
-          localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+          persistDraftToStorage();
           render();
         }
 
@@ -1063,16 +1098,23 @@
             </button>`
           );
 
+          const removeSvg = `<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M11.7 2.53287C12.1881 2.04488 12.9794 2.04477 13.4675 2.53287C13.9555 3.02098 13.9555 3.81233 13.4675 4.30045L9.76831 7.99966L13.4675 11.6999C13.9554 12.188 13.9556 12.9794 13.4675 13.4674C12.9795 13.9555 12.1881 13.9553 11.7 13.4674L7.99976 9.76822L4.30054 13.4674C3.81242 13.9554 3.02107 13.9554 2.53296 13.4674C2.04486 12.9793 2.04497 12.188 2.53296 11.6999L6.23218 7.99966L2.53296 4.30045C2.0448 3.81229 2.0448 3.02102 2.53296 2.53287C3.02111 2.04471 3.81238 2.04471 4.30054 2.53287L7.99976 6.23209L11.7 2.53287Z" fill="currentColor"/></svg>`;
+
           for (let i = 0; i < list.length; i++) {
             const m = list[i];
             const url = m.url;
+            const isVideo = (m.type || "").startsWith("video/");
+            const delLabel = isVideo ? "Удалить видео" : "Удалить фото";
+            const removeBtn = `<button type="button" class="mediaRemove" data-media-index="${i}" aria-label="${delLabel}">${removeSvg}</button>`;
             const badge = i === 0 ? `<div class="badge" role="status">Обложка</div>` : "";
-            if (m.type.startsWith("video/")) {
+            if (isVideo) {
               tiles.push(
-                `<div class="mediaTile">${badge}<video src="${url}" muted playsinline></video></div>`
+                `<div class="mediaTile">${removeBtn}${badge}<video src="${url}" muted playsinline></video></div>`
               );
             } else {
-              tiles.push(`<div class="mediaTile">${badge}<img src="${url}" alt="" /></div>`);
+              tiles.push(
+                `<div class="mediaTile">${removeBtn}${badge}<img src="${url}" alt="" loading="lazy" decoding="async" /></div>`
+              );
             }
           }
 
@@ -1194,7 +1236,10 @@
           const newItems = files.map((f) => {
             const url = URL.createObjectURL(f);
             mediaObjectUrls.push(url);
-            return { name: f.name, type: f.type || "image/*", url };
+            const t = f.type && f.type.length ? f.type : f.name.toLowerCase().endsWith(".mov")
+              ? "video/quicktime"
+              : "image/jpeg";
+            return { name: f.name, type: t, url };
           });
           let combined = [...existing, ...newItems];
           if (combined.length > 9) {
@@ -1211,6 +1256,23 @@
         });
 
         els.mediaGrid.addEventListener("click", (e) => {
+          const removeBtn = e.target.closest(".mediaRemove");
+          if (removeBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const idx = Number(removeBtn.dataset.mediaIndex);
+            if (Number.isNaN(idx) || idx < 0) return;
+            const list = [...(draft.media || [])];
+            if (idx >= list.length) return;
+            const [removed] = list.splice(idx, 1);
+            if (removed?.url) {
+              URL.revokeObjectURL(removed.url);
+              const j = mediaObjectUrls.indexOf(removed.url);
+              if (j !== -1) mediaObjectUrls.splice(j, 1);
+            }
+            saveDraft({ media: list });
+            return;
+          }
           const btn = e.target.closest("#mediaAddBtn");
           if (!btn) return;
           els.mediaInput.click();
