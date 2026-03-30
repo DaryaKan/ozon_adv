@@ -7,11 +7,11 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="title-wiki-awesomplete-v18" />
+    <meta name="prototype-build" content="qty-stepper-always-v19" />
     <title>Создать объявление — Ozon ADV</title>
     <script>
       (function () {
-        var NEED = "free-osm-map-v17";
+        var NEED = "qty-stepper-always-v19";
         try {
           var p = new URLSearchParams(location.search);
           if (p.get("_p") === NEED) return;
@@ -932,8 +932,8 @@
         transform: translateX(20px);
       }
 
-      /* Степпер количества: капсула, − | число | + */
-      .qtyStepper {
+      /* Степпер количества: капсула, − | число | + (шаг 8 — повышенная специфичность на случай конфликтов) */
+      .step[data-step="8"] .qtyStepper {
         display: flex;
         align-items: stretch;
         width: min(100%, 280px);
@@ -944,7 +944,7 @@
         box-sizing: border-box;
       }
 
-      .qtyStepperBtn {
+      .step[data-step="8"] .qtyStepperBtn {
         appearance: none;
         border: 0;
         margin: 0;
@@ -962,22 +962,27 @@
         -webkit-tap-highlight-color: transparent;
       }
 
-      .qtyStepperBtn:hover {
+      .step[data-step="8"] .qtyStepperBtn:hover:not(:disabled) {
         background: rgba(0, 0, 0, 0.04);
       }
 
-      .qtyStepperBtn:active {
+      .step[data-step="8"] .qtyStepperBtn:active:not(:disabled) {
         background: rgba(0, 0, 0, 0.07);
       }
 
-      .qtyStepperBtn:focus-visible {
+      .step[data-step="8"] .qtyStepperBtn:focus-visible {
         outline: none;
         box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 45%, transparent);
         position: relative;
         z-index: 1;
       }
 
-      .qtyStepperInput {
+      .step[data-step="8"] .qtyStepperBtn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .step[data-step="8"] .qtyStepperInput {
         flex: 1 1 auto;
         min-width: 40px;
         width: 56px;
@@ -993,13 +998,17 @@
         box-shadow: none;
       }
 
-      .qtyStepperInput:focus-visible {
+      .step[data-step="8"] .qtyStepperInput:focus-visible {
         box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--primary) 45%, transparent);
         position: relative;
         z-index: 1;
       }
 
-      .qtyStepperInput::placeholder {
+      .step[data-step="8"] .qtyStepperInput:read-only {
+        cursor: default;
+      }
+
+      .step[data-step="8"] .qtyStepperInput::placeholder {
         color: rgba(0, 0, 0, 0.35);
       }
 
@@ -1368,8 +1377,8 @@
               </div>
             </div>
 
-            <div class="field" id="qtyField" style="display:none">
-              <div class="qtyStepper" role="group" aria-label="Количество товара">
+            <div class="field" id="qtyField">
+              <div class="qtyStepper" id="qtyStepper" role="group" aria-label="Количество товара">
                 <button class="qtyStepperBtn" id="qtyMinus" type="button" aria-label="Уменьшить количество">
                   −
                 </button>
@@ -1505,6 +1514,7 @@
           priceInput: document.getElementById("priceInput"),
           qtyToggle: document.getElementById("qtyToggle"),
           qtyField: document.getElementById("qtyField"),
+          qtyStepper: document.getElementById("qtyStepper"),
           qtyInput: document.getElementById("qtyInput"),
           qtyMinus: document.getElementById("qtyMinus"),
           qtyPlus: document.getElementById("qtyPlus"),
@@ -5401,9 +5411,17 @@
         }
 
         function renderQty() {
-          els.qtyToggle.setAttribute("aria-checked", draft.qtyEnabled ? "true" : "false");
-          els.qtyField.style.display = draft.qtyEnabled ? "block" : "none";
+          const enabled = !!draft.qtyEnabled;
+          els.qtyToggle.setAttribute("aria-checked", enabled ? "true" : "false");
+          els.qtyField.style.display = "block";
           els.qtyInput.value = String(draft.qty || 1);
+          els.qtyMinus.disabled = !enabled;
+          els.qtyPlus.disabled = !enabled;
+          els.qtyInput.readOnly = !enabled;
+          if (els.qtyStepper) {
+            els.qtyStepper.setAttribute("aria-disabled", enabled ? "false" : "true");
+            els.qtyStepper.classList.toggle("qtyStepper--locked", !enabled);
+          }
         }
 
         function renderPills(container, value) {
