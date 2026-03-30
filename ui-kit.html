@@ -549,6 +549,18 @@
       </header>
 
       <section class="section">
+        <h2>Иконки (Figma sprite)</h2>
+        <div class="hint">
+          Положи файл спрайта в `assets/icons.svg` (экспорт из Figma). Здесь появится список всех
+          `symbol id`, а ниже — превью.
+        </div>
+        <div class="row">
+          <div class="hint" id="iconSpriteStatus">Проверяю `assets/icons.svg`…</div>
+          <div class="icons" id="iconSpriteGrid" aria-label="Sprite icons grid"></div>
+        </div>
+      </section>
+
+      <section class="section">
         <h2>Типографика</h2>
         <div class="hint">
           Правила: Onest; H1 27 Bold, H2 20 Bold, H3 16 Bold, H4 14 SemiBold uppercase, Paragraph 16
@@ -780,6 +792,30 @@
 
     <script>
       (function () {
+        async function loadSprite(url) {
+          try {
+            const res = await fetch(url, { cache: "no-cache" });
+            if (!res.ok) return null;
+            const text = await res.text();
+            const doc = new DOMParser().parseFromString(text, "image/svg+xml");
+            const svg = doc.querySelector("svg");
+            if (!svg) return null;
+            const mount = document.createElement("div");
+            mount.style.position = "absolute";
+            mount.style.width = "0";
+            mount.style.height = "0";
+            mount.style.overflow = "hidden";
+            mount.style.pointerEvents = "none";
+            mount.setAttribute("aria-hidden", "true");
+            mount.appendChild(document.importNode(svg, true));
+            document.body.appendChild(mount);
+            const ids = Array.from(mount.querySelectorAll("symbol[id]")).map((s) => s.id);
+            return { ids };
+          } catch {
+            return null;
+          }
+        }
+
         const tokens = [
           { name: "--ozCtrlPrimary", label: "Primary", fallback: "#005bff" },
           { name: "--ozTextPrimary", label: "Text primary", fallback: "#0a0a0a" },
@@ -824,6 +860,31 @@
           for (const b of tabs.querySelectorAll("button[data-tab]")) {
             b.setAttribute("aria-selected", b === btn ? "true" : "false");
           }
+        });
+
+        // Figma sprite icons
+        const iconSpriteStatus = document.getElementById("iconSpriteStatus");
+        const iconSpriteGrid = document.getElementById("iconSpriteGrid");
+        loadSprite("./assets/icons.svg").then((sprite) => {
+          if (!sprite || !sprite.ids.length) {
+            iconSpriteStatus.textContent =
+              "Спрайт не найден. Добавь файл `assets/icons.svg` в репозиторий и обнови страницу.";
+            return;
+          }
+          iconSpriteStatus.textContent = `Найдено иконок: ${sprite.ids.length}`;
+          iconSpriteGrid.innerHTML = sprite.ids
+            .slice(0, 120)
+            .map(
+              (id) => `
+                <div class="iconCard">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <use href="#${id}"></use>
+                  </svg>
+                  <div class="iconName">${id}</div>
+                </div>
+              `
+            )
+            .join("");
         });
 
         const toastCard = document.getElementById("toastCard");
