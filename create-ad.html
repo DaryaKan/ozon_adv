@@ -306,7 +306,7 @@
         display: flex;
         gap: 12px;
         overflow-x: auto;
-        padding-bottom: 6px;
+        padding: 4px 4px 6px;
       }
 
       .mediaTile {
@@ -321,10 +321,19 @@
         position: relative;
       }
 
+      .mediaTile:has(.mediaRemove) {
+        overflow: visible;
+      }
+
+      .mediaTile:has(.mediaRemove) img,
+      .mediaTile:has(.mediaRemove) video {
+        border-radius: 18px;
+      }
+
       .mediaRemove {
         position: absolute;
-        top: 4px;
-        right: 4px;
+        top: -4px;
+        right: -4px;
         z-index: 3;
         width: 22px;
         height: 22px;
