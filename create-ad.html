@@ -6,7 +6,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <!-- Версия разметки: при отладке кэша ищи в исходнике «prototype-build» -->
-    <meta name="prototype-build" content="title-tags-rotate-no-exact" />
+    <meta name="prototype-build" content="title-suggest-multi-category" />
     <title>Создать объявление — Ozon ADV</title>
 
     <style>
@@ -993,36 +993,184 @@
           saveDraft({ [key]: value });
         }
 
-        const titleBases = [
-          "Чехол",
-          "Кабель",
-          "Зарядка",
-          "Наушники",
-          "Пленка",
-          "Стекло защитное",
-          "Пауэрбанк",
-          "Рюкзак",
-        ];
-        const titleTails = [
-          "на телефон",
-          "для iPhone",
-          "для iPhone 13",
-          "для iPhone 14",
-          "для iPhone 15",
-          "для Samsung",
-          "универсальный",
-        ];
+        /** Пул названий: электроника, одежда/обувь, дом, детские товары, спорт, книги и др. */
+        const titleCandidates = (function () {
+          const list = [];
+
+          const electronicsBases = [
+            "Чехол",
+            "Кабель",
+            "Зарядка",
+            "Наушники",
+            "Пленка",
+            "Стекло защитное",
+            "Пауэрбанк",
+            "Рюкзак",
+            "Умные часы",
+            "Фитнес-браслет",
+          ];
+          const electronicsTails = [
+            "на телефон",
+            "для iPhone",
+            "для iPhone 13",
+            "для iPhone 14",
+            "для iPhone 15",
+            "для Samsung",
+            "универсальный",
+            "USB-C",
+            "Lightning",
+            "беспроводная",
+          ];
+          for (const b of electronicsBases) {
+            for (const t of electronicsTails) list.push(`${b} ${t}`);
+          }
+
+          const fashionBases = [
+            "Платье",
+            "Юбка",
+            "Футболка",
+            "Джинсы",
+            "Куртка",
+            "Пальто",
+            "Рубашка",
+            "Свитер",
+            "Шорты",
+            "Кроссовки",
+            "Ботинки",
+            "Кеды",
+            "Сапоги",
+            "Сумка",
+            "Шарф",
+            "Пуховик",
+            "Худи",
+            "Леггинсы",
+          ];
+          const fashionTails = [
+            "женское",
+            "мужское",
+            "детское",
+            "летнее",
+            "зимнее",
+            "вечернее",
+            "новое",
+            "б/у",
+            "размер M",
+            "размер L",
+            "размер S",
+            "мини",
+            "длинное",
+            "повседневное",
+            "спортивное",
+            "школьное",
+            "выпускное",
+            "для девочки",
+            "для мальчика",
+            "оверсайз",
+            "классическое",
+            "чёрное",
+            "белое",
+            "бежевое",
+          ];
+          for (const b of fashionBases) {
+            for (const t of fashionTails) list.push(`${b} ${t}`);
+          }
+
+          const homeBases = [
+            "Диван",
+            "Стол",
+            "Кресло",
+            "Кровать",
+            "Лампа",
+            "Кружка",
+            "Зеркало",
+            "Полка",
+            "Шкаф",
+            "Комод",
+            "Подушка",
+            "Одеяло",
+            "Ковёр",
+            "Ваза",
+          ];
+          const homeTails = [
+            "для кухни",
+            "для гостиной",
+            "в спальню",
+            "новый",
+            "новая",
+            "новое",
+            "угловой",
+            "раскладной",
+            "настольная",
+            "напольная",
+            "для детей",
+            "с ящиками",
+            "складной",
+            "б/у",
+          ];
+          for (const b of homeBases) {
+            for (const t of homeTails) list.push(`${b} ${t}`);
+          }
+
+          const kidsBases = [
+            "Коляска",
+            "Автокресло",
+            "Конструктор",
+            "Кукла",
+            "Машинка",
+            "Настольная игра",
+            "Беговел",
+            "Самокат",
+          ];
+          const kidsTails = ["для детей", "от 1 года", "от 3 лет", "от 5 лет", "новый", "новая", "новое", "б/у"];
+          for (const b of kidsBases) {
+            for (const t of kidsTails) list.push(`${b} ${t}`);
+          }
+
+          const sportBases = ["Гантели", "Мат", "Велосипед", "Гиря", "Эспандер", "Турник"];
+          const sportTails = ["для дома", "для спорта", "новый", "складной", "регулируемые"];
+          for (const b of sportBases) {
+            for (const t of sportTails) list.push(`${b} ${t}`);
+          }
+
+          const bookMediaBases = ["Книга", "Учебник", "Журнал", "Альбом для рисования"];
+          const bookMediaTails = ["новый", "б/у", "для школы", "для детей", "на русском"];
+          for (const b of bookMediaBases) {
+            for (const t of bookMediaTails) list.push(`${b} ${t}`);
+          }
+
+          const beautyBases = ["Крем", "Помада", "Тушь", "Шампунь", "Духи"];
+          const beautyTails = ["для лица", "для волос", "новый", "оригинал", "тестер"];
+          for (const b of beautyBases) {
+            for (const t of beautyTails) list.push(`${b} ${t}`);
+          }
+
+          list.push(
+            "Платье в пол",
+            "Платье футляр",
+            "Платье с цветами",
+            "Кроссовки для бега",
+            "Куртка демисезонная",
+            "Рюкзак городской",
+            "Ноутбук б/у",
+            "Монитор 27 дюймов",
+            "Игровая мышь",
+            "Микроволновая печь",
+            "Блендер погружной",
+            "Умная колонка",
+            "Электросамокат",
+            "Гитара акустическая",
+            "Беговая дорожка"
+          );
+
+          return Array.from(new Set(list));
+        })();
 
         function buildTitleSuggestions(text) {
           const current = (text || "").trim();
           const q = current.toLowerCase();
           if (!q) return [];
 
-          const candidates = [];
-          for (const b of titleBases) {
-            for (const t of titleTails) candidates.push(`${b} ${t}`);
-          }
-          const uniq = Array.from(new Set(candidates));
+          const uniq = titleCandidates;
 
           const notExact = (s) => s.trim().toLowerCase() !== current.toLowerCase();
 
